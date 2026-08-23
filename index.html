@@ -1173,3 +1173,1249 @@
   }
 })();
 </script>
+
+<!-- PMT REVIEW TOOL v1 :: BEGIN (source of truth: review-tool.html, injected by build_review.py) -->
+<style>
+/* ============================================================
+   Parkdale House :: client markup tool
+   Scoped under .pdh-rv* so nothing here can touch the page.
+   Pure ASCII on purpose (page has no charset meta).
+   ============================================================ */
+.pdh-rv, .pdh-rv * { box-sizing: border-box; }
+.pdh-rv {
+  --rv-ink:#14201B; --rv-pine:#1E3A2F; --rv-linen:#FBF8F1; --rv-brass:#C4A634;
+  --rv-surface:rgba(18,29,25,.94);
+  --rv-line:rgba(251,248,241,.16);
+  --rv-line-soft:rgba(251,248,241,.09);
+  --rv-dim:rgba(251,248,241,.56);
+  --rv-dimmer:rgba(251,248,241,.38);
+  --rv-sans:"Avenir Next","Avenir","Helvetica Neue",Helvetica,Arial,sans-serif;
+  --rv-serif:"Fraunces","Didot","Georgia",serif;
+  --rv-shadow:0 18px 50px rgba(0,0,0,.5), 0 2px 8px rgba(0,0,0,.3);
+  --rv-ease:cubic-bezier(.22,1,.36,1);
+  font-family: var(--rv-sans);
+  font-variant-numeric: lining-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- layers ---------- */
+#pdh-rv-layer {
+  position: fixed; inset: 0; z-index: 2147482000;
+  pointer-events: none; overflow: hidden;
+}
+#pdh-rv-ui { position: fixed; inset: 0; z-index: 2147483000; pointer-events: none; }
+#pdh-rv-ui > * { pointer-events: auto; }
+
+/* capture surface, active only while a drawing tool is armed */
+#pdh-rv-capture {
+  position: fixed; inset: 0; z-index: 2147482500;
+  cursor: crosshair; background: transparent;
+}
+#pdh-rv-capture.pdh-drawing { background: rgba(20,32,27,.06); }
+
+/* ---------- markers ---------- */
+.pdh-mk { position: absolute; pointer-events: none; }
+.pdh-mk-hit { pointer-events: auto; }
+
+.pdh-pin {
+  width: 30px; height: 30px; border-radius: 50% 50% 50% 3px;
+  transform: translate(-4px,-30px) rotate(-45deg);
+  background: var(--rv-brass);
+  border: 1.5px solid rgba(20,32,27,.5);
+  box-shadow: 0 6px 16px rgba(0,0,0,.45);
+  display: grid; place-items: center;
+  cursor: pointer;
+  transition: transform .22s var(--rv-ease), box-shadow .22s var(--rv-ease);
+}
+.pdh-pin span {
+  transform: rotate(45deg);
+  font: 600 12.5px/1 var(--rv-sans);
+  color: var(--rv-ink); letter-spacing: 0;
+}
+.pdh-pin:hover { transform: translate(-4px,-33px) rotate(-45deg) scale(1.08); }
+.pdh-mk.is-sel .pdh-pin { box-shadow: 0 0 0 4px rgba(196,166,52,.28), 0 6px 16px rgba(0,0,0,.45); }
+.pdh-mk.is-done .pdh-pin { background: #7C8F84; }
+
+.pdh-box {
+  position: absolute; border: 2px dashed var(--rv-brass);
+  background: rgba(196,166,52,.10);
+  border-radius: 3px; cursor: pointer;
+  box-shadow: 0 0 0 1px rgba(20,32,27,.35) inset;
+  transition: background .2s var(--rv-ease);
+}
+.pdh-box:hover { background: rgba(196,166,52,.18); }
+.pdh-mk.is-sel .pdh-box { border-style: solid; background: rgba(196,166,52,.20); }
+.pdh-mk.is-done .pdh-box { border-color: #7C8F84; background: rgba(124,143,132,.12); }
+
+.pdh-box-tag {
+  position: absolute; top: -12px; left: -2px;
+  min-width: 22px; height: 22px; padding: 0 7px;
+  background: var(--rv-brass); color: var(--rv-ink);
+  border-radius: 11px; display: grid; place-items: center;
+  font: 600 12px/1 var(--rv-sans);
+  box-shadow: 0 4px 12px rgba(0,0,0,.4);
+}
+.pdh-mk.is-done .pdh-box-tag { background: #7C8F84; }
+
+.pdh-hl {
+  position: absolute; background: rgba(196,166,52,.26);
+  border-bottom: 2px solid var(--rv-brass);
+  border-radius: 2px; cursor: pointer;
+}
+.pdh-mk.is-done .pdh-hl { background: rgba(124,143,132,.20); border-bottom-color:#7C8F84; }
+
+/* live rubber band */
+#pdh-rv-band {
+  position: fixed; border: 2px dashed var(--rv-brass);
+  background: rgba(196,166,52,.12); border-radius: 3px;
+  pointer-events: none; z-index: 2147482600;
+}
+
+/* ---------- shared surface look ---------- */
+.pdh-surf {
+  background: var(--rv-surface);
+  -webkit-backdrop-filter: blur(16px) saturate(1.25);
+  backdrop-filter: blur(16px) saturate(1.25);
+  border: 1px solid var(--rv-line);
+  box-shadow: var(--rv-shadow);
+  color: var(--rv-linen);
+}
+.pdh-lbl {
+  font: 600 9.5px/1 var(--rv-sans);
+  letter-spacing: .2em; text-transform: uppercase;
+  color: var(--rv-dimmer);
+}
+
+/* ---------- toolbar ---------- */
+#pdh-rv-bar {
+  position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 4px;
+  padding: 6px; border-radius: 999px;
+  animation: pdh-rise .5s var(--rv-ease) both;
+}
+@keyframes pdh-rise { from { opacity:0; transform: translateX(-50%) translateY(14px); } }
+
+#pdh-rv-bar .pdh-brand {
+  display: flex; flex-direction: column; gap: 2px;
+  padding: 3px 14px 3px 12px; margin-right: 2px;
+  border-right: 1px solid var(--rv-line-soft);
+}
+#pdh-rv-bar .pdh-brand b {
+  font: 400 13px/1.15 var(--rv-serif); letter-spacing: .01em; color: var(--rv-linen);
+  white-space: nowrap;
+}
+#pdh-rv-bar .pdh-brand i { font-style: normal; }
+
+.pdh-btn {
+  appearance: none; border: 0; background: transparent; color: var(--rv-linen);
+  font: 500 12.5px/1 var(--rv-sans); letter-spacing: .01em;
+  display: inline-flex; align-items: center; gap: 7px;
+  height: 38px; padding: 0 13px; border-radius: 999px;
+  cursor: pointer; white-space: nowrap;
+  transition: background .18s var(--rv-ease), color .18s var(--rv-ease);
+}
+.pdh-btn svg { width: 16px; height: 16px; flex: none; }
+.pdh-btn:hover { background: rgba(251,248,241,.09); }
+.pdh-btn.is-on { background: var(--rv-brass); color: var(--rv-ink); }
+.pdh-btn.is-on:hover { background: #d4b647; }
+.pdh-btn[disabled] { opacity: .4; cursor: default; }
+.pdh-btn.pdh-ghost { border: 1px solid var(--rv-line); }
+.pdh-btn.pdh-solid { background: var(--rv-brass); color: var(--rv-ink); font-weight: 600; }
+.pdh-btn.pdh-solid:hover { background: #d4b647; }
+.pdh-btn.pdh-quiet { color: var(--rv-dim); font-size: 12px; height: 32px; padding: 0 10px; }
+.pdh-btn.pdh-quiet:hover { color: var(--rv-linen); }
+
+.pdh-count {
+  min-width: 19px; height: 19px; padding: 0 6px; border-radius: 10px;
+  background: var(--rv-brass); color: var(--rv-ink);
+  font: 600 11px/19px var(--rv-sans); text-align: center;
+}
+.pdh-btn.is-on .pdh-count { background: rgba(20,32,27,.22); color: var(--rv-ink); }
+
+#pdh-rv-bar .pdh-sep { width: 1px; height: 22px; background: var(--rv-line-soft); margin: 0 3px; }
+
+/* ---------- composer ---------- */
+#pdh-rv-composer {
+  position: fixed; width: 316px; border-radius: 14px; padding: 14px;
+  animation: pdh-pop .26s var(--rv-ease) both;
+}
+@keyframes pdh-pop { from { opacity:0; transform: scale(.96) translateY(6px); } }
+
+#pdh-rv-composer .pdh-c-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 8px; margin-bottom: 10px;
+}
+#pdh-rv-composer .pdh-c-where {
+  font: 400 12px/1.3 var(--rv-sans); color: var(--rv-dim);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+#pdh-rv-composer .pdh-c-num {
+  flex: none; width: 22px; height: 22px; border-radius: 50%;
+  background: var(--rv-brass); color: var(--rv-ink);
+  font: 600 11.5px/22px var(--rv-sans); text-align: center;
+}
+
+.pdh-quote {
+  font: 400 11.5px/1.5 var(--rv-serif); font-style: italic;
+  color: var(--rv-dim); border-left: 2px solid rgba(196,166,52,.5);
+  padding: 2px 0 2px 9px; margin-bottom: 10px;
+  max-height: 54px; overflow: hidden;
+}
+
+.pdh-in, .pdh-ta {
+  width: 100%; background: rgba(251,248,241,.05);
+  border: 1px solid var(--rv-line); border-radius: 9px;
+  color: var(--rv-linen); font: 400 13.5px/1.5 var(--rv-sans);
+  padding: 9px 11px; outline: none; resize: none;
+  transition: border-color .18s var(--rv-ease), background .18s var(--rv-ease);
+}
+.pdh-in::placeholder, .pdh-ta::placeholder { color: var(--rv-dimmer); }
+.pdh-in:focus, .pdh-ta:focus { border-color: rgba(196,166,52,.65); background: rgba(251,248,241,.07); }
+.pdh-ta { min-height: 84px; }
+
+.pdh-tags { display: flex; flex-wrap: wrap; gap: 5px; margin: 10px 0; }
+.pdh-tag {
+  appearance: none; cursor: pointer;
+  border: 1px solid var(--rv-line); background: transparent; color: var(--rv-dim);
+  font: 500 11px/1 var(--rv-sans); letter-spacing: .02em;
+  padding: 6px 10px; border-radius: 999px;
+  transition: all .16s var(--rv-ease);
+}
+.pdh-tag:hover { color: var(--rv-linen); border-color: rgba(251,248,241,.3); }
+.pdh-tag.is-on { background: var(--rv-brass); border-color: var(--rv-brass); color: var(--rv-ink); font-weight: 600; }
+
+.pdh-who { display: flex; gap: 6px; margin-bottom: 10px; }
+.pdh-who .pdh-in { font-size: 12.5px; padding: 7px 10px; }
+
+.pdh-c-foot { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+.pdh-c-foot .pdh-spacer { flex: 1; }
+.pdh-hint {
+  font: 400 10.5px/1.4 var(--rv-sans); color: var(--rv-dimmer);
+  margin-top: 9px; text-align: right;
+}
+
+/* ---------- selection chip ---------- */
+#pdh-rv-chip {
+  position: fixed; z-index: 2147483000; border-radius: 999px; padding: 4px;
+  animation: pdh-pop .2s var(--rv-ease) both;
+}
+
+/* ---------- panel ---------- */
+#pdh-rv-panel {
+  position: fixed; top: 0; right: 0; bottom: 0; width: 372px; max-width: 92vw;
+  display: flex; flex-direction: column;
+  border-radius: 0; border-width: 0 0 0 1px;
+  transform: translateX(100%);
+  transition: transform .42s var(--rv-ease);
+}
+#pdh-rv-panel.is-open { transform: none; }
+
+.pdh-p-head { padding: 20px 18px 14px; border-bottom: 1px solid var(--rv-line-soft); }
+.pdh-p-head h3 { font: 400 21px/1.15 var(--rv-serif); margin: 6px 0 3px; color: var(--rv-linen); }
+.pdh-p-head p { font: 400 12px/1.5 var(--rv-sans); color: var(--rv-dim); }
+.pdh-p-close {
+  position: absolute; top: 14px; right: 12px;
+  width: 32px; height: 32px; border-radius: 50%;
+  display: grid; place-items: center; padding: 0;
+}
+
+.pdh-p-list { flex: 1; overflow-y: auto; padding: 6px 0 12px; }
+.pdh-p-list::-webkit-scrollbar { width: 8px; }
+.pdh-p-list::-webkit-scrollbar-thumb { background: rgba(251,248,241,.14); border-radius: 4px; }
+
+.pdh-group { padding: 14px 18px 4px; }
+.pdh-item {
+  display: flex; gap: 11px; padding: 11px 18px; cursor: pointer;
+  border-left: 2px solid transparent;
+  transition: background .16s var(--rv-ease), border-color .16s var(--rv-ease);
+}
+.pdh-item:hover { background: rgba(251,248,241,.05); border-left-color: rgba(196,166,52,.5); }
+.pdh-item.is-sel { background: rgba(196,166,52,.10); border-left-color: var(--rv-brass); }
+.pdh-item-n {
+  flex: none; width: 22px; height: 22px; border-radius: 50%;
+  background: var(--rv-brass); color: var(--rv-ink);
+  font: 600 11.5px/22px var(--rv-sans); text-align: center;
+}
+.pdh-item.is-done .pdh-item-n { background: #7C8F84; }
+.pdh-item.is-done .pdh-item-note { text-decoration: line-through; color: var(--rv-dimmer); }
+.pdh-item-body { min-width: 0; flex: 1; }
+.pdh-item-note {
+  font: 400 13px/1.5 var(--rv-sans); color: var(--rv-linen);
+  overflow-wrap: anywhere;
+}
+.pdh-item-meta {
+  display: flex; align-items: center; gap: 7px; margin-top: 5px;
+  font: 500 10px/1 var(--rv-sans); letter-spacing: .12em;
+  text-transform: uppercase; color: var(--rv-dimmer);
+}
+.pdh-chip-tag {
+  padding: 3px 7px; border-radius: 4px;
+  background: rgba(196,166,52,.16); color: var(--rv-brass);
+  letter-spacing: .1em;
+}
+
+.pdh-empty { padding: 44px 26px; text-align: center; }
+.pdh-empty p { font: 400 13px/1.65 var(--rv-sans); color: var(--rv-dim); margin-top: 10px; }
+.pdh-empty h4 { font: 400 17px/1.3 var(--rv-serif); color: var(--rv-linen); }
+
+.pdh-p-foot { border-top: 1px solid var(--rv-line-soft); padding: 13px 14px; }
+.pdh-p-foot .pdh-row { display: flex; gap: 6px; align-items: center; }
+.pdh-p-foot .pdh-btn { flex: 1; justify-content: center; }
+.pdh-more { display: none; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+.pdh-more.is-open { display: flex; }
+.pdh-status { font: 400 11.5px/1.45 var(--rv-sans); color: var(--rv-dim); margin-top: 9px; text-align: center; min-height: 1px; }
+.pdh-status.is-good { color: var(--rv-brass); }
+.pdh-status.is-bad { color: #E0876A; }
+
+/* ---------- intro card ---------- */
+#pdh-rv-intro {
+  position: fixed; left: 50%; bottom: 84px; transform: translateX(-50%);
+  width: 400px; max-width: calc(100vw - 32px);
+  border-radius: 15px; padding: 20px 22px 18px;
+  animation: pdh-rise .55s var(--rv-ease) .35s both;
+}
+#pdh-rv-intro h4 { font: 400 19px/1.25 var(--rv-serif); margin: 7px 0 8px; }
+#pdh-rv-intro ol { margin: 0 0 15px; padding-left: 17px; }
+#pdh-rv-intro li { font: 400 13px/1.65 var(--rv-sans); color: var(--rv-dim); margin-bottom: 3px; }
+#pdh-rv-intro li b { color: var(--rv-linen); font-weight: 600; }
+
+/* ---------- responsive ---------- */
+@media (max-width: 720px) {
+  #pdh-rv-bar { bottom: 12px; width: calc(100vw - 20px); justify-content: space-between; border-radius: 16px; }
+  #pdh-rv-bar .pdh-brand { display: none; }
+  .pdh-btn { padding: 0 11px; font-size: 12px; }
+  .pdh-btn .pdh-txt { display: none; }
+  .pdh-btn.pdh-keep-txt .pdh-txt { display: inline; }
+  #pdh-rv-composer { width: calc(100vw - 24px); left: 12px !important; }
+  #pdh-rv-intro { bottom: 74px; }
+}
+
+@media print { .pdh-rv, #pdh-rv-layer, #pdh-rv-ui, #pdh-rv-capture { display: none !important; } }
+@media (prefers-reduced-motion: reduce) { .pdh-rv, .pdh-rv * { animation: none !important; transition: none !important; } }
+</style>
+
+<script>
+(function () {
+  'use strict';
+
+  /* =========================================================
+     0. CONFIG
+     ========================================================= */
+  var CFG = {
+    endpoint: 'https://propertymanagementto.app.n8n.cloud/webhook/parkdale-review',
+    token: 'pdh-bsar-2026',
+    project: 'Parkdale House, 1521 Queen Street West',
+    contact: 'aheshmat@propertymanagementto.com',
+    storeKey: 'pdh_review_v1',
+    onKey: 'pdh_review_on',
+    introKey: 'pdh_review_intro',
+    maxNote: 1200
+  };
+  var TAGS = ['Copy', 'Design', 'Imagery', 'Pricing', 'Functionality', 'Other'];
+
+  /* =========================================================
+     1. ACTIVATION GATE
+     Public visitors never see this. Reviewers arrive on
+     ?review and the mode then sticks for that browser.
+     ========================================================= */
+  var params = new URLSearchParams(location.search);
+  var flag = params.has('review') ? (params.get('review') || 'on') : null;
+  var stored = null;
+  try { stored = localStorage.getItem(CFG.onKey); } catch (e) {}
+
+  if (flag === 'off' || flag === '0') {
+    try { localStorage.removeItem(CFG.onKey); } catch (e) {}
+    return;
+  }
+  if (flag) { try { localStorage.setItem(CFG.onKey, '1'); } catch (e) {} }
+  else if (stored !== '1') { return; }
+
+  /* =========================================================
+     2. STATE
+     ========================================================= */
+  var S = {
+    items: [],
+    reviewer: { name: '', org: '' },
+    tool: null,          // null | 'pin' | 'box'
+    sel: null,           // selected item id
+    visible: true,
+    seq: 0,
+    dirty: false
+  };
+
+  function load() {
+    try {
+      var raw = localStorage.getItem(CFG.storeKey);
+      if (!raw) return;
+      var d = JSON.parse(raw);
+      if (d && Array.isArray(d.items)) {
+        // Drop anything abandoned mid-compose so it does not come back as a blank pin.
+        S.items = d.items.filter(function (it) { return it && it.note && it.anchor; });
+        S.items.forEach(function (it) { delete it._new; });
+        S.reviewer = d.reviewer || S.reviewer;
+        S.items.forEach(function (it) { S.seq = Math.max(S.seq, it.n || 0); });
+      }
+    } catch (e) {}
+  }
+  function save() {
+    try {
+      localStorage.setItem(CFG.storeKey, JSON.stringify({
+        v: 1, reviewer: S.reviewer, items: S.items, saved: new Date().toISOString()
+      }));
+    } catch (e) {}
+  }
+
+  /* =========================================================
+     3. DOM HELPERS
+     ========================================================= */
+  function el(tag, cls, html) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (html != null) n.innerHTML = html;
+    return n;
+  }
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+  function clamp(v, lo, hi) { return v < lo ? lo : (v > hi ? hi : v); }
+  function mine(node) { return !!(node && node.closest && node.closest('.pdh-rv, #pdh-rv-layer, #pdh-rv-ui, #pdh-rv-capture, #pdh-rv-band')); }
+
+  var ICON = {
+    pin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7L7 22l1.1-4.2A8.5 8.5 0 0 1 12.5 3h.5a8.5 8.5 0 0 1 8 8.5z"/></svg>',
+    box: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5.5" width="17" height="13" rx="1.5" stroke-dasharray="3 2.6"/><path d="M8 12h8"/></svg>',
+    eye: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.7-6.5 10-6.5S22 12 22 12s-3.7 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.6"/></svg>',
+    eyeOff: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M17.9 17.9A10.4 10.4 0 0 1 12 19.5C5.7 19.5 2 13 2 13a18 18 0 0 1 4.5-5.2M9.9 5.7A10 10 0 0 1 12 5.5c6.3 0 10 6.5 10 6.5a18 18 0 0 1-2.3 3.2M10.1 10.1a2.6 2.6 0 0 0 3.7 3.7"/><path d="M3 3l18 18"/></svg>',
+    list: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7h12M8 12h12M8 17h12M4 7h.01M4 12h.01M4 17h.01"/></svg>',
+    send: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2.5L11 13"/><path d="M21.5 2.5l-6.7 19-3.8-8.5L2.5 9.2z"/></svg>',
+    x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+    check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5.2 5.2L20 7"/></svg>',
+    trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9.5 7V5.2c0-.7.5-1.2 1.2-1.2h2.6c.7 0 1.2.5 1.2 1.2V7M6.5 7l.8 12c0 .8.6 1.4 1.4 1.4h6.6c.8 0 1.4-.6 1.4-1.4l.8-12"/></svg>',
+    dots: '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5.5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="18.5" cy="12" r="1.6"/></svg>'
+  };
+
+  /* =========================================================
+     4. ANCHORING
+     A markup is stored against the nearest element that has a
+     stable id, plus the child index path down to the exact
+     element, plus a fractional offset inside that element box.
+     That survives resizing, reflow and font swaps. If the exact
+     element ever disappears we degrade to its container rather
+     than dropping the comment.
+     ========================================================= */
+  var SECTIONS = {
+    top: 'Hero', about: 'About', suites: 'Suites and Pricing',
+    amenities: 'Amenities', perks: 'Resident Perks',
+    neighbourhood: 'Neighbourhood', map: 'Map',
+    offer: 'The Offer', contact: 'Contact', nav: 'Navigation'
+  };
+
+  function sectionOf(node) {
+    var s = node && node.closest ? node.closest('section[id], header[id], nav[id], section, header, footer, nav') : null;
+    if (!s) return { id: '', label: 'Page' };
+    var id = s.id || '';
+    var label = SECTIONS[id];
+    if (!label) {
+      var h = s.querySelector('h1, h2, h3');
+      label = h ? h.textContent.replace(/\s+/g, ' ').trim().slice(0, 38) : (s.tagName.toLowerCase() === 'footer' ? 'Footer' : 'Page');
+    }
+    return { id: id, label: label || 'Page' };
+  }
+
+  function makeAnchor(node) {
+    var path = [], cur = node;
+    var guard = 0;
+    while (cur && cur !== document.body && !cur.id && guard++ < 40) {
+      var p = cur.parentElement;
+      if (!p) break;
+      path.unshift(Array.prototype.indexOf.call(p.children, cur));
+      cur = p;
+    }
+    var root = (cur && cur.id) ? '#' + CSS.escape(cur.id) : 'body';
+    return { root: root, path: path };
+  }
+
+  function resolveAnchor(a) {
+    var root = a.root === 'body' ? document.body : document.querySelector(a.root);
+    if (!root) return null;
+    var node = root;
+    for (var i = 0; i < a.path.length; i++) {
+      var next = node.children[a.path[i]];
+      if (!next) return node;      // degrade to the deepest container we still have
+      node = next;
+    }
+    return node;
+  }
+
+  /* =========================================================
+     5. MARKUP LAYER
+     Every marker is positioned from its anchor's live rect, so
+     sticky headers, parallax and the horizontal gallery all
+     carry their markers correctly.
+     ========================================================= */
+  var layer = el('div'); layer.id = 'pdh-rv-layer'; layer.className = 'pdh-rv';
+  document.body.appendChild(layer);
+
+  var nodes = {};   // id -> DOM node
+
+  function markerFor(it) {
+    var wrap = el('div', 'pdh-mk');
+    wrap.dataset.id = it.id;
+    var inner;
+    if (it.kind === 'box') {
+      inner = el('div', 'pdh-box pdh-mk-hit');
+      inner.appendChild(el('div', 'pdh-box-tag', String(it.n)));
+    } else if (it.kind === 'text') {
+      inner = el('div', 'pdh-hl pdh-mk-hit');
+      inner.appendChild(el('div', 'pdh-box-tag', String(it.n)));
+    } else {
+      inner = el('div', 'pdh-pin pdh-mk-hit', '<span>' + it.n + '</span>');
+    }
+    inner.title = (it.tag ? it.tag + ': ' : '') + (it.note || 'No note yet');
+    inner.addEventListener('click', function (ev) {
+      ev.stopPropagation(); ev.preventDefault();
+      selectItem(it.id, true);
+    });
+    wrap.appendChild(inner);
+    layer.appendChild(wrap);
+    return wrap;
+  }
+
+  function syncLayer() {
+    var seen = {};
+    S.items.forEach(function (it) {
+      seen[it.id] = 1;
+      if (!nodes[it.id]) nodes[it.id] = markerFor(it);
+    });
+    Object.keys(nodes).forEach(function (id) {
+      if (!seen[id]) { nodes[id].remove(); delete nodes[id]; }
+    });
+    position();
+  }
+
+  function position() {
+    if (!S.visible) { layer.style.display = 'none'; return; }
+    layer.style.display = '';
+    var vw = innerWidth, vh = innerHeight;
+    S.items.forEach(function (it) {
+      var n = nodes[it.id];
+      if (!n) return;
+      var host = resolveAnchor(it.anchor);
+      if (!host) { n.style.display = 'none'; return; }
+      var r = host.getBoundingClientRect();
+      if (!r.width && !r.height) { n.style.display = 'none'; return; }
+
+      var x = r.left + it.anchor.x * r.width;
+      var y = r.top + it.anchor.y * r.height;
+
+      // cull far off-screen so long pages stay cheap
+      if (y < -1600 || y > vh + 1600 || x < -1200 || x > vw + 1200) { n.style.display = 'none'; return; }
+      n.style.display = '';
+      n.style.left = x + 'px';
+      n.style.top = y + 'px';
+
+      if (it.kind === 'box' || it.kind === 'text') {
+        var b = n.firstChild;
+        b.style.width = Math.max(14, it.anchor.w * r.width) + 'px';
+        b.style.height = Math.max(12, it.anchor.h * r.height) + 'px';
+      }
+      n.classList.toggle('is-sel', S.sel === it.id);
+      n.classList.toggle('is-done', it.status === 'resolved');
+    });
+  }
+
+  var queued = false;
+  function schedule() {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(function () { queued = false; position(); });
+  }
+  addEventListener('scroll', schedule, { passive: true });
+  addEventListener('resize', schedule);
+  // Direct call, not schedule(): rAF is frozen in a background or embedded tab,
+  // which would otherwise latch `queued` on and stall every later reposition.
+  setInterval(function () { queued = false; position(); }, 500);
+
+  /* =========================================================
+     6. UI SHELL
+     ========================================================= */
+  var ui = el('div'); ui.id = 'pdh-rv-ui'; ui.className = 'pdh-rv';
+  document.body.appendChild(ui);
+
+  // ---- toolbar ----
+  var bar = el('div', 'pdh-surf'); bar.id = 'pdh-rv-bar';
+  bar.innerHTML =
+    '<div class="pdh-brand"><i class="pdh-lbl">Review mode</i><b>Parkdale House</b></div>' +
+    '<button class="pdh-btn" data-act="pin">' + ICON.pin + '<span class="pdh-txt">Comment</span></button>' +
+    '<button class="pdh-btn" data-act="box">' + ICON.box + '<span class="pdh-txt">Mark area</span></button>' +
+    '<div class="pdh-sep"></div>' +
+    '<button class="pdh-btn" data-act="eye" title="Show or hide markups">' + ICON.eye + '</button>' +
+    '<button class="pdh-btn" data-act="panel">' + ICON.list + '<span class="pdh-txt">Comments</span><span class="pdh-count" data-count>0</span></button>' +
+    '<button class="pdh-btn pdh-solid pdh-keep-txt" data-act="send">' + ICON.send + '<span class="pdh-txt">Send</span></button>';
+  ui.appendChild(bar);
+
+  // ---- panel ----
+  var panel = el('div', 'pdh-surf'); panel.id = 'pdh-rv-panel';
+  panel.innerHTML =
+    '<div class="pdh-p-head">' +
+      '<button class="pdh-btn pdh-p-close" data-act="close-panel" title="Close">' + ICON.x + '</button>' +
+      '<i class="pdh-lbl">' + esc(CFG.project) + '</i>' +
+      '<h3>Your markups</h3>' +
+      '<p data-sub>Nothing marked up yet.</p>' +
+    '</div>' +
+    '<div class="pdh-p-list" data-list></div>' +
+    '<div class="pdh-p-foot">' +
+      '<div class="pdh-row">' +
+        '<button class="pdh-btn pdh-solid" data-act="send">' + ICON.send + '<span>Send to PMT</span></button>' +
+        '<button class="pdh-btn pdh-ghost" data-act="more" title="More options">' + ICON.dots + '</button>' +
+      '</div>' +
+      '<div class="pdh-more" data-more>' +
+        '<button class="pdh-btn pdh-quiet" data-act="email">Email to PMT</button>' +
+        '<button class="pdh-btn pdh-quiet" data-act="download">Download file</button>' +
+        '<button class="pdh-btn pdh-quiet" data-act="copy">Copy as text</button>' +
+        '<button class="pdh-btn pdh-quiet" data-act="import">Open a file</button>' +
+        '<button class="pdh-btn pdh-quiet" data-act="clear">Clear all</button>' +
+      '</div>' +
+      '<div class="pdh-status" data-status></div>' +
+    '</div>';
+  ui.appendChild(panel);
+
+  var $count = bar.querySelector('[data-count]');
+  var $list = panel.querySelector('[data-list]');
+  var $sub = panel.querySelector('[data-sub]');
+  var $status = panel.querySelector('[data-status]');
+  var $more = panel.querySelector('[data-more]');
+
+  function setStatus(msg, kind) {
+    $status.textContent = msg || '';
+    $status.className = 'pdh-status' + (kind ? ' is-' + kind : '');
+  }
+
+  /* =========================================================
+     7. PANEL LIST
+     ========================================================= */
+  function renderPanel() {
+    $count.textContent = String(S.items.length);
+    var open = S.items.filter(function (i) { return i.status !== 'resolved'; }).length;
+    $sub.textContent = S.items.length
+      ? (S.items.length + ' markup' + (S.items.length === 1 ? '' : 's') + ', ' + open + ' open')
+      : 'Nothing marked up yet.';
+
+    if (!S.items.length) {
+      $list.innerHTML =
+        '<div class="pdh-empty">' + ICON.pin +
+        '<h4>Mark up anything</h4>' +
+        '<p>Pick <b>Comment</b> and click any part of the page, or <b>Mark area</b> and drag a box around it. ' +
+        'You can also select text on the page and comment straight on it.</p></div>';
+      return;
+    }
+
+    var groups = {}, order = [];
+    S.items.forEach(function (it) {
+      var k = it.anchor.sectionLabel || 'Page';
+      if (!groups[k]) { groups[k] = []; order.push(k); }
+      groups[k].push(it);
+    });
+
+    var html = '';
+    order.forEach(function (k) {
+      html += '<div class="pdh-group"><i class="pdh-lbl">' + esc(k) + '</i></div>';
+      groups[k].forEach(function (it) {
+        html +=
+          '<div class="pdh-item' + (S.sel === it.id ? ' is-sel' : '') + (it.status === 'resolved' ? ' is-done' : '') + '" data-goto="' + it.id + '">' +
+            '<div class="pdh-item-n">' + it.n + '</div>' +
+            '<div class="pdh-item-body">' +
+              '<div class="pdh-item-note">' + esc(it.note || 'No note') + '</div>' +
+              '<div class="pdh-item-meta">' +
+                (it.tag ? '<span class="pdh-chip-tag">' + esc(it.tag) + '</span>' : '') +
+                '<span>' + (it.kind === 'box' ? 'Area' : it.kind === 'text' ? 'Text' : 'Point') + '</span>' +
+              '</div>' +
+            '</div>' +
+          '</div>';
+      });
+    });
+    $list.innerHTML = html;
+  }
+
+  function renderAll() { syncLayer(); renderPanel(); }
+
+  /* =========================================================
+     8. COMPOSER
+     ========================================================= */
+  var composer = null;
+
+  function closeComposer(removeIfBlank) {
+    if (!composer) return;
+    var it = composer._item;
+    // A cancelled new markup has no note and is dropped. An existing markup
+    // keeps its note unless the reviewer actually cleared it and saved.
+    if (removeIfBlank && it && !it.note) {
+      S.items = S.items.filter(function (x) { return x.id !== it.id; });
+      renumber();
+    }
+    composer.remove(); composer = null;
+    S.sel = null;
+    renderAll(); save();
+  }
+
+  function openComposer(it, anchorPoint) {
+    closeComposer(true);
+    S.sel = it.id;
+
+    var box = el('div', 'pdh-surf pdh-rv'); box.id = 'pdh-rv-composer';
+    box._item = it;
+
+    var needWho = !S.reviewer.name;
+    box.innerHTML =
+      '<div class="pdh-c-head">' +
+        '<div class="pdh-c-num">' + it.n + '</div>' +
+        '<div class="pdh-c-where">' + esc(it.anchor.sectionLabel || 'Page') + '</div>' +
+        '<button class="pdh-btn pdh-quiet" data-c="cancel" style="padding:0 6px">' + ICON.x + '</button>' +
+      '</div>' +
+      (it.anchor.quote ? '<div class="pdh-quote">' + esc(it.anchor.quote) + '</div>' : '') +
+      (needWho
+        ? '<div class="pdh-who">' +
+            '<input class="pdh-in" data-c="name" placeholder="Your name" autocomplete="name">' +
+            '<input class="pdh-in" data-c="org" placeholder="Company" style="max-width:38%">' +
+          '</div>'
+        : '') +
+      '<textarea class="pdh-ta" data-c="note" placeholder="What should change here?" maxlength="' + CFG.maxNote + '"></textarea>' +
+      '<div class="pdh-tags">' +
+        TAGS.map(function (t) {
+          return '<button class="pdh-tag' + (it.tag === t ? ' is-on' : '') + '" data-tag="' + t + '">' + t + '</button>';
+        }).join('') +
+      '</div>' +
+      '<div class="pdh-c-foot">' +
+        (it._new ? '' : '<button class="pdh-btn pdh-quiet" data-c="del" title="Delete">' + ICON.trash + '</button>' +
+                        '<button class="pdh-btn pdh-quiet" data-c="done" title="Mark as resolved">' + ICON.check + '</button>') +
+        '<div class="pdh-spacer"></div>' +
+        '<button class="pdh-btn pdh-solid" data-c="save">Save</button>' +
+      '</div>' +
+      '<div class="pdh-hint">Cmd or Ctrl plus Enter to save</div>';
+
+    ui.appendChild(box);
+    composer = box;
+
+    var $note = box.querySelector('[data-c="note"]');
+    $note.value = it.note || '';
+
+    // place next to the marker, kept inside the viewport
+    var w = 316, h = box.offsetHeight || 300;
+    var px = clamp(anchorPoint.x + 18, 12, innerWidth - w - 12);
+    var py = clamp(anchorPoint.y - 10, 12, innerHeight - h - 12);
+    box.style.left = px + 'px';
+    box.style.top = py + 'px';
+
+    setTimeout(function () {
+      var f = box.querySelector('[data-c="name"]') || $note;
+      f.focus();
+      if (f === $note) $note.setSelectionRange($note.value.length, $note.value.length);
+    }, 30);
+
+    box.addEventListener('click', function (ev) {
+      var t = ev.target.closest('[data-tag], [data-c]');
+      if (!t) return;
+      if (t.dataset.tag) {
+        it.tag = (it.tag === t.dataset.tag) ? '' : t.dataset.tag;
+        box.querySelectorAll('.pdh-tag').forEach(function (b) {
+          b.classList.toggle('is-on', b.dataset.tag === it.tag);
+        });
+        return;
+      }
+      var a = t.dataset.c;
+      if (a === 'cancel') { closeComposer(true); }
+      else if (a === 'save') { commit(); }
+      else if (a === 'del') {
+        S.items = S.items.filter(function (x) { return x.id !== it.id; });
+        renumber(); closeComposer(false);
+      } else if (a === 'done') {
+        it.status = it.status === 'resolved' ? 'open' : 'resolved';
+        commit();
+      }
+    });
+
+    box.addEventListener('keydown', function (ev) {
+      if (ev.key === 'Escape') { ev.stopPropagation(); closeComposer(true); }
+      if (ev.key === 'Enter' && (ev.metaKey || ev.ctrlKey)) { ev.preventDefault(); commit(); }
+    });
+
+    function commit() {
+      var nm = box.querySelector('[data-c="name"]');
+      var og = box.querySelector('[data-c="org"]');
+      if (nm) S.reviewer.name = nm.value.trim();
+      if (og) S.reviewer.org = og.value.trim();
+      it.note = $note.value.trim().slice(0, CFG.maxNote);
+      it.updated = new Date().toISOString();
+      if (!it.note) { closeComposer(true); return; }
+      delete it._new;
+      closeComposer(false);
+      setStatus('Saved. ' + S.items.length + ' markup' + (S.items.length === 1 ? '' : 's') + ' held on this device.', 'good');
+    }
+  }
+
+  function renumber() {
+    S.items.forEach(function (it, i) { it.n = i + 1; });
+    S.seq = S.items.length;
+    Object.keys(nodes).forEach(function (id) { nodes[id].remove(); delete nodes[id]; });
+  }
+
+  /* =========================================================
+     9. CREATING MARKUPS
+     ========================================================= */
+  function newItem(kind, host, frac, quote) {
+    var sec = sectionOf(host);
+    var a = makeAnchor(host);
+    a.x = frac.x; a.y = frac.y; a.w = frac.w || 0; a.h = frac.h || 0;
+    a.sectionId = sec.id; a.sectionLabel = sec.label;
+    if (quote) a.quote = quote.replace(/\s+/g, ' ').trim().slice(0, 220);
+
+    var it = {
+      id: 'm' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      n: ++S.seq,
+      kind: kind,
+      note: '', tag: '', status: 'open',
+      anchor: a,
+      created: new Date().toISOString(),
+      vw: innerWidth, vh: innerHeight,
+      _new: true
+    };
+    S.items.push(it);
+    syncLayer();
+    return it;
+  }
+
+  function hostAt(x, y) {
+    var stack = document.elementsFromPoint(x, y) || [];
+    for (var i = 0; i < stack.length; i++) {
+      if (!mine(stack[i]) && stack[i] !== document.documentElement && stack[i] !== document.body) return stack[i];
+    }
+    return document.body;
+  }
+
+  // ---- capture surface for the drawing tools ----
+  var capture = null, band = null, drag = null;
+
+  function setTool(t) {
+    S.tool = (S.tool === t) ? null : t;
+    bar.querySelectorAll('[data-act="pin"], [data-act="box"]').forEach(function (b) {
+      b.classList.toggle('is-on', b.dataset.act === S.tool);
+    });
+    if (S.tool) armCapture(); else disarmCapture();
+    if (S.tool && !S.visible) toggleEye(true);
+  }
+
+  function armCapture() {
+    if (capture) return;
+    capture = el('div'); capture.id = 'pdh-rv-capture'; capture.className = 'pdh-rv';
+    document.body.appendChild(capture);
+    capture.addEventListener('pointerdown', onDown);
+    addEventListener('pointermove', onMove);
+    addEventListener('pointerup', onUp);
+    setStatus('');
+  }
+  function disarmCapture() {
+    if (!capture) return;
+    capture.remove(); capture = null;
+    removeEventListener('pointermove', onMove);
+    removeEventListener('pointerup', onUp);
+    if (band) { band.remove(); band = null; }
+    drag = null;
+  }
+
+  function onDown(ev) {
+    ev.preventDefault();
+    drag = { x0: ev.clientX, y0: ev.clientY, moved: false };
+    if (S.tool === 'box') {
+      band = el('div'); band.id = 'pdh-rv-band'; band.className = 'pdh-rv';
+      document.body.appendChild(band);
+      capture.classList.add('pdh-drawing');
+    }
+  }
+
+  function onMove(ev) {
+    if (!drag) return;
+    var dx = ev.clientX - drag.x0, dy = ev.clientY - drag.y0;
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) drag.moved = true;
+    if (band) {
+      band.style.left = Math.min(ev.clientX, drag.x0) + 'px';
+      band.style.top = Math.min(ev.clientY, drag.y0) + 'px';
+      band.style.width = Math.abs(dx) + 'px';
+      band.style.height = Math.abs(dy) + 'px';
+    }
+  }
+
+  function onUp(ev) {
+    if (!drag) return;
+    var d = drag; drag = null;
+    if (capture) capture.classList.remove('pdh-drawing');
+    if (band) { band.remove(); band = null; }
+
+    var x1 = Math.min(d.x0, ev.clientX), y1 = Math.min(d.y0, ev.clientY);
+    var w = Math.abs(ev.clientX - d.x0), h = Math.abs(ev.clientY - d.y0);
+
+    if (S.tool === 'box' && d.moved && w > 8 && h > 8) {
+      var host = hostAt(x1 + w / 2, y1 + h / 2);
+      var r = host.getBoundingClientRect();
+      if (!r.width || !r.height) host = document.body, r = host.getBoundingClientRect();
+      var it = newItem('box', host, {
+        x: (x1 - r.left) / r.width, y: (y1 - r.top) / r.height,
+        w: w / r.width, h: h / r.height
+      }, textIn(host, x1, y1, w, h));
+      setTool(null);
+      openComposer(it, { x: x1 + w, y: y1 });
+    } else if (!d.moved) {
+      var hp = hostAt(ev.clientX, ev.clientY);
+      var rp = hp.getBoundingClientRect();
+      if (!rp.width || !rp.height) hp = document.body, rp = hp.getBoundingClientRect();
+      var ip = newItem('pin', hp, {
+        x: (ev.clientX - rp.left) / rp.width,
+        y: (ev.clientY - rp.top) / rp.height
+      }, (hp.textContent || '').slice(0, 220));
+      setTool(null);
+      openComposer(ip, { x: ev.clientX, y: ev.clientY });
+    }
+  }
+
+  function textIn(host, x, y, w, h) {
+    var t = (host.textContent || '').replace(/\s+/g, ' ').trim();
+    return t.slice(0, 220);
+  }
+
+  /* =========================================================
+     10. COMMENT ON A TEXT SELECTION
+     Works with no tool armed, the way people already expect.
+     ========================================================= */
+  var chip = null;
+  function killChip() { if (chip) { chip.remove(); chip = null; } }
+
+  document.addEventListener('mouseup', function (ev) {
+    if (S.tool || mine(ev.target)) return;
+    setTimeout(function () {
+      var sel = getSelection();
+      if (!sel || sel.isCollapsed) { killChip(); return; }
+      var txt = sel.toString().replace(/\s+/g, ' ').trim();
+      if (txt.length < 3) { killChip(); return; }
+      var range = sel.getRangeAt(0);
+      var r = range.getBoundingClientRect();
+      if (!r.width && !r.height) { killChip(); return; }
+      var host = range.commonAncestorContainer;
+      if (host.nodeType === 3) host = host.parentElement;
+      if (mine(host)) { killChip(); return; }
+
+      killChip();
+      chip = el('div', 'pdh-surf pdh-rv'); chip.id = 'pdh-rv-chip';
+      chip.innerHTML = '<button class="pdh-btn" style="height:32px;font-size:12px">' + ICON.pin + 'Comment on this</button>';
+      chip.style.left = clamp(r.left + r.width / 2 - 84, 10, innerWidth - 180) + 'px';
+      chip.style.top = clamp(r.top - 44, 10, innerHeight - 50) + 'px';
+      ui.appendChild(chip);
+
+      chip.addEventListener('mousedown', function (e) { e.preventDefault(); });
+      chip.addEventListener('click', function () {
+        var hr = host.getBoundingClientRect();
+        if (!hr.width || !hr.height) { killChip(); return; }
+        var it = newItem('text', host, {
+          x: (r.left - hr.left) / hr.width,
+          y: (r.top - hr.top) / hr.height,
+          w: r.width / hr.width,
+          h: r.height / hr.height
+        }, txt);
+        killChip();
+        try { sel.removeAllRanges(); } catch (e) {}
+        openComposer(it, { x: r.right, y: r.top });
+      });
+    }, 10);
+  });
+  addEventListener('scroll', killChip, { passive: true });
+
+  /* =========================================================
+     11. NAVIGATION AND SELECTION
+     ========================================================= */
+  function selectItem(id, openIt) {
+    var it = S.items.filter(function (x) { return x.id === id; })[0];
+    if (!it) return;
+    S.sel = id;
+    position(); renderPanel();
+    if (!openIt) return;
+    var host = resolveAnchor(it.anchor);
+    if (!host) return;
+    var r = host.getBoundingClientRect();
+    openComposer(it, { x: r.left + it.anchor.x * r.width, y: r.top + it.anchor.y * r.height });
+  }
+
+  function gotoItem(id) {
+    var it = S.items.filter(function (x) { return x.id === id; })[0];
+    if (!it) return;
+    var host = resolveAnchor(it.anchor);
+    if (!host) return;
+    var r = host.getBoundingClientRect();
+    var top = scrollY + r.top + it.anchor.y * r.height - innerHeight * 0.35;
+    scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+    setTimeout(function () { selectItem(id, true); }, 520);
+  }
+
+  $list.addEventListener('click', function (ev) {
+    var row = ev.target.closest('[data-goto]');
+    if (row) gotoItem(row.dataset.goto);
+  });
+
+  /* =========================================================
+     12. EXPORT AND DELIVERY
+     ========================================================= */
+  function payload() {
+    return {
+      token: CFG.token,
+      project: CFG.project,
+      page: location.origin + location.pathname,
+      reviewer: S.reviewer,
+      submitted: new Date().toISOString(),
+      viewport: innerWidth + 'x' + innerHeight,
+      count: S.items.length,
+      items: S.items.map(function (it) {
+        return {
+          n: it.n, kind: it.kind, tag: it.tag, status: it.status,
+          section: it.anchor.sectionLabel,
+          quote: it.anchor.quote || '',
+          note: it.note,
+          created: it.created
+        };
+      })
+    };
+  }
+
+  function asText() {
+    var p = payload();
+    var out = [];
+    out.push(CFG.project + ' - landing page markups');
+    out.push('From: ' + (p.reviewer.name || 'Not named') + (p.reviewer.org ? ', ' + p.reviewer.org : ''));
+    out.push('Page: ' + p.page);
+    out.push('Sent: ' + new Date().toLocaleString());
+    out.push(p.count + ' markup' + (p.count === 1 ? '' : 's'));
+    out.push('');
+    p.items.forEach(function (it) {
+      out.push(it.n + '. [' + (it.section || 'Page') + (it.tag ? ' / ' + it.tag : '') + '] ' + it.note);
+      if (it.quote) out.push('   On: "' + it.quote + '"');
+    });
+    return out.join('\n');
+  }
+
+  function download() {
+    var blob = new Blob([JSON.stringify(payload(), null, 2)], { type: 'application/json' });
+    var a = el('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'Parkdale_House_markups_' + new Date().toISOString().slice(0, 10) + '.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+    setStatus('File downloaded. Email it to ' + CFG.contact, 'good');
+  }
+
+  function copyText() {
+    var t = asText();
+    var done = function () { setStatus('Copied. Paste it into an email or a message.', 'good'); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(t).then(done, function () { fallbackCopy(t, done); });
+    } else fallbackCopy(t, done);
+  }
+  function fallbackCopy(t, done) {
+    var ta = el('textarea'); ta.value = t;
+    ta.style.cssText = 'position:fixed;left:-9999px';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); done(); }
+    catch (e) { setStatus('Could not copy. Use Download file instead.', 'bad'); }
+    ta.remove();
+  }
+
+  function importFile() {
+    var inp = el('input'); inp.type = 'file'; inp.accept = '.json,application/json';
+    inp.addEventListener('change', function () {
+      var f = inp.files && inp.files[0];
+      if (!f) return;
+      var fr = new FileReader();
+      fr.onload = function () {
+        try {
+          var d = JSON.parse(fr.result);
+          var incoming = d.items || [];
+          if (!incoming.length) { setStatus('That file has no markups in it.', 'bad'); return; }
+          // a sent payload is flattened, so only a full local file can restore pins
+          if (!incoming[0].anchor) {
+            setStatus('That is a summary file. It lists the notes but cannot place the pins.', 'bad');
+            return;
+          }
+          S.items = incoming;
+          S.reviewer = d.reviewer || S.reviewer;
+          S.seq = 0; S.items.forEach(function (it) { S.seq = Math.max(S.seq, it.n || 0); });
+          Object.keys(nodes).forEach(function (id) { nodes[id].remove(); delete nodes[id]; });
+          renderAll(); save();
+          setStatus('Loaded ' + S.items.length + ' markups.', 'good');
+        } catch (e) { setStatus('That file could not be read.', 'bad'); }
+      };
+      fr.readAsText(f);
+    });
+    inp.click();
+  }
+
+  function localBackup() {
+    // never let a failed send lose the work
+    try { localStorage.setItem(CFG.storeKey + '_sent', JSON.stringify(payload())); } catch (e) {}
+  }
+
+  function emailIt() {
+    var body = asText();
+    var big = body.length > 1500;
+    if (big) download();   // mailto bodies get truncated by most clients
+    var url = 'mailto:' + CFG.contact +
+      '?subject=' + encodeURIComponent('Parkdale House landing page markups from ' + (S.reviewer.name || 'BSaR')) +
+      '&body=' + encodeURIComponent(
+        big ? body.slice(0, 1500) + '\n\n[Truncated. The full list just downloaded, please attach it.]' : body
+      );
+    location.href = url;
+    setStatus(big
+      ? 'Opening your email app. Attach the file that just downloaded.'
+      : 'Opening your email app.', 'good');
+  }
+
+  function fallback(why) {
+    setStatus(why + ' Your markups are safe on this page. Use Email to PMT below.', 'bad');
+    $more.classList.add('is-open');
+  }
+
+  function send() {
+    if (!S.items.length) { openPanel(true); setStatus('Add a markup first.', 'bad'); return; }
+    if (!S.reviewer.name) {
+      openPanel(true);
+      setStatus('Add your name on any markup first so we know who to reply to.', 'bad');
+      return;
+    }
+    openPanel(true);
+    setStatus('Sending.');
+    localBackup();
+
+    // Guard against a hung request as well as an outright failure, so the
+    // reviewer is never left staring at "Sending" with no way forward.
+    var settled = false;
+    var timer = setTimeout(function () {
+      if (settled) return;
+      settled = true;
+      fallback('That is taking longer than expected.');
+    }, 9000);
+
+    // text/plain keeps this a simple request, so no CORS preflight is needed
+    fetch(CFG.endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+      body: JSON.stringify(payload())
+    }).then(function (res) {
+      if (settled) return;
+      settled = true; clearTimeout(timer);
+      // fetch only rejects on network failure, so an HTTP error still lands here
+      if (res && res.ok === false) { fallback('The server refused that submission.'); return; }
+      setStatus('Sent to the PMT team. A copy stays on this page so you can keep going.', 'good');
+    }).catch(function () {
+      if (settled) return;
+      settled = true; clearTimeout(timer);
+      fallback('The direct send did not go through.');
+    });
+  }
+
+  /* =========================================================
+     13. PANEL AND TOOLBAR WIRING
+     ========================================================= */
+  function openPanel(force) {
+    var on = (typeof force === 'boolean') ? force : !panel.classList.contains('is-open');
+    panel.classList.toggle('is-open', on);
+    bar.querySelector('[data-act="panel"]').classList.toggle('is-on', on);
+    if (on) renderPanel();
+  }
+
+  function toggleEye(force) {
+    S.visible = (typeof force === 'boolean') ? force : !S.visible;
+    var b = bar.querySelector('[data-act="eye"]');
+    b.innerHTML = S.visible ? ICON.eye : ICON.eyeOff;
+    b.classList.toggle('is-on', !S.visible);
+    position();
+  }
+
+  var ACTIONS = {
+    pin: function () { setTool('pin'); },
+    box: function () { setTool('box'); },
+    eye: function () { toggleEye(); },
+    panel: function () { openPanel(); },
+    'close-panel': function () { openPanel(false); },
+    send: send,
+    more: function () { $more.classList.toggle('is-open'); },
+    email: emailIt,
+    download: download,
+    copy: copyText,
+    import: importFile,
+    clear: function () {
+      if (!confirm('Remove all ' + S.items.length + ' markups from this browser? This cannot be undone.')) return;
+      S.items = []; S.seq = 0;
+      Object.keys(nodes).forEach(function (id) { nodes[id].remove(); delete nodes[id]; });
+      renderAll(); save(); setStatus('Cleared.');
+    }
+  };
+
+  ui.addEventListener('click', function (ev) {
+    var b = ev.target.closest('[data-act]');
+    if (!b) return;
+    var fn = ACTIONS[b.dataset.act];
+    if (fn) { ev.preventDefault(); fn(); }
+  });
+
+  addEventListener('keydown', function (ev) {
+    if (ev.key !== 'Escape') return;
+    if (composer) { closeComposer(true); return; }
+    if (S.tool) { setTool(null); return; }
+    if (panel.classList.contains('is-open')) ACTIONS['close-panel']();
+  });
+
+  /* =========================================================
+     14. FIRST RUN COACH CARD
+     ========================================================= */
+  function intro() {
+    var seen = null;
+    try { seen = localStorage.getItem(CFG.introKey); } catch (e) {}
+    if (seen === '1' || S.items.length) return;
+
+    var card = el('div', 'pdh-surf pdh-rv'); card.id = 'pdh-rv-intro';
+    card.innerHTML =
+      '<i class="pdh-lbl">Review mode is on</i>' +
+      '<h4>Mark up this page the way you marked up the proposal.</h4>' +
+      '<ol>' +
+        '<li><b>Comment</b> drops a pin wherever you click.</li>' +
+        '<li><b>Mark area</b> draws a box around a region.</li>' +
+        '<li>Or select any text and comment straight on it.</li>' +
+        '<li><b>Send</b> delivers everything to the PMT team.</li>' +
+      '</ol>' +
+      '<div class="pdh-c-foot"><div class="pdh-spacer"></div>' +
+      '<button class="pdh-btn pdh-solid" data-go>Got it</button></div>';
+    ui.appendChild(card);
+    card.querySelector('[data-go]').addEventListener('click', function () {
+      card.remove();
+      try { localStorage.setItem(CFG.introKey, '1'); } catch (e) {}
+    });
+  }
+
+  /* =========================================================
+     15. BOOT
+     ========================================================= */
+  load();
+  renderAll();
+  toggleEye(true);
+  intro();
+
+  // deep link: parkdalehouse.github.io/?review#m-3 jumps to markup 3
+  var m = /(?:^|#)m-(\d+)$/.exec(location.hash);
+  if (m) {
+    var want = S.items.filter(function (x) { return x.n === +m[1]; })[0];
+    if (want) setTimeout(function () { gotoItem(want.id); }, 700);
+  }
+
+  // save on the way out, belt and braces
+  addEventListener('beforeunload', save);
+  addEventListener('visibilitychange', function () { if (document.hidden) save(); });
+
+  window.PDHReview = { state: S, payload: payload, text: asText };
+})();
+</script>
+<!-- PMT REVIEW TOOL v1 :: END -->
