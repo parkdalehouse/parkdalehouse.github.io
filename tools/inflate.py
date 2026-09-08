@@ -134,14 +134,20 @@ def main():
         html = html.replace(token, data_uri(f))
 
     # --- partner brand marks ---------------------------------------------
+    inlined = 0
     for token, (name, mime) in BRAND_FILES.items():
+        n = html.count(token)
+        # a mark can be built and switched off (see tools/v2_flags.py), so an
+        # absent token is fine; more than one is not
+        if n == 0:
+            continue
+        if n != 1:
+            raise SystemExit("inflate: brand token %s appears %d times" % (token, n))
         f = BRAND / name
         if not f.exists():
             raise SystemExit("inflate: missing brand asset %s" % f)
-        if html.count(token) != 1:
-            raise SystemExit("inflate: brand token %s appears %d times"
-                             % (token, html.count(token)))
         html = html.replace(token, data_uri(f, mime))
+        inlined += 1
 
     # --- images ----------------------------------------------------------
     used = set(re.findall(r"\{\{DU_\d+\}\}", html))
@@ -174,7 +180,7 @@ def main():
     print("inflate: wrote %s" % OUT.relative_to(ROOT))
     print("  images   %d" % len(used))
     print("  fonts    %d" % len(FONT_FILES))
-    print("  brand    %d" % len(BRAND_FILES))
+    print("  brand    %d of %d available" % (inlined, len(BRAND_FILES)))
     print("  size     %.1f KB" % (len(html.encode()) / 1024))
     print("  dashes   clean, ASCII clean")
     return 0
