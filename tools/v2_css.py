@@ -409,6 +409,25 @@ def run(h, sub, resub, cut_block):
     h = sub(h, "  footer{position:relative;padding:4.5rem 2.4rem 0;overflow:hidden;border-top:1px solid var(--hair)}",
             "  footer{position:relative;padding:4.5rem 2.4rem 0;overflow:hidden;\n"
             "    background:var(--deep-2);border-top:1px solid var(--hair)}", 1, "footer bg")
+    # A fourth partner column (Nezam AI, marketing) makes the grid five wide.
+    # The track ratios are tuned so no partner legal name wraps at 1280: the
+    # PMT and BSaR columns get the extra room, the two text columns give it up.
+    h = sub(h, "  .foot-grid{max-width:1280px;margin:0 auto;display:grid;"
+               "grid-template-columns:1.3fr 1fr 1fr 1fr;gap:2.5rem}",
+            "  .foot-grid{max-width:1280px;margin:0 auto;display:grid;"
+            "grid-template-columns:1.05fr 1.05fr .92fr 1.16fr .97fr;gap:2rem}", 1, "foot grid cols")
+    # three marks of three different aspect ratios: centre them in a shared
+    # box so they sit on one optical line instead of hanging from the label
+    h = sub(h, "  .foot-lockup img{width:150px;margin-top:.7rem}\n"
+               "  .foot-lockup img.bsar{width:120px}",
+            "  .foot-lockup>a{display:flex;align-items:center;min-height:58px;margin-top:.5rem}\n"
+            "  .foot-lockup img{width:150px}\n"
+            "  .foot-lockup img.bsar{width:120px}\n"
+            "  .foot-lockup img.nezam{width:162px}", 1, "foot lockup marks")
+    h = sub(h, "  @media(max-width:1000px){.foot-grid{grid-template-columns:1fr 1fr}}",
+            "  @media(max-width:1180px){.foot-grid{grid-template-columns:repeat(3,1fr)}}\n"
+            "  @media(max-width:820px){.foot-grid{grid-template-columns:1fr 1fr}}", 1, "foot grid mq")
+
     h = sub(h, "  .foot-giant{font-family:var(--serif);font-weight:380;font-size:clamp(4rem,13vw,11rem);line-height:.78;",
             "  .foot-giant{font-family:var(--serif);font-weight:700;font-size:clamp(3.4rem,12vw,10rem);line-height:.82;",
             1, "foot giant")

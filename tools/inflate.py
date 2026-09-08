@@ -4,8 +4,13 @@ Build v2/index.html from the edited skeleton.
 
   1. substitute the {{DU_n}} image tokens back from v2/assets.json
   2. substitute the {{FONT_*}} tokens from the woff2 files in v2/fonts/
-  3. splice in the client markup tool, re-skinned and keyed for v2
-  4. refuse to write if a forbidden dash or a non-ASCII byte got in
+  3. substitute the partner-brand tokens from the files in v2/brand/
+  4. splice in the client markup tool, re-skinned and keyed for v2
+  5. refuse to write if a forbidden dash or a non-ASCII byte got in
+
+v2/assets.json is a regenerable artefact of tools/deflate.py, so anything that
+did not come out of the root index.html lives in v2/brand/ as a real tracked
+file and is inlined here instead.
 
 Nothing here touches the root index.html.
 """
@@ -20,6 +25,7 @@ ROOT = Path(__file__).resolve().parent.parent
 SKELETON = ROOT / "v2" / "skeleton_v2.html"
 ASSETS = ROOT / "v2" / "assets.json"
 FONTS = ROOT / "v2" / "fonts"
+BRAND = ROOT / "v2" / "brand"
 TOOL = ROOT / "review-tool.html"
 OUT = ROOT / "v2" / "index.html"
 
@@ -29,6 +35,12 @@ FONT_FILES = {
     "{{FONT_LB700}}": "LibreBaskerville-Bold-latin.woff2",
     "{{FONT_DM}}": "DMSans-Variable-latin.woff2",
     "{{FONT_DMI}}": "DMSans-Italic-latin.woff2",
+}
+
+# Partner marks that are not part of the original page. Nezam AI runs the
+# marketing for The 501 from Sept 2026 and carries a credit in the footer.
+BRAND_FILES = {
+    "{{NEZAM_LOCKUP}}": ("nezam_lockup_on_dark.svg", "image/svg+xml"),
 }
 
 # U+2014, U+2013 and every entity form of them. The literals are written as
@@ -85,8 +97,7 @@ TOOL_GLOBAL = [
 ]
 
 
-def data_uri(path):
-    mime = "font/woff2"
+def data_uri(path, mime="font/woff2"):
     return "data:%s;base64,%s" % (mime, base64.b64encode(path.read_bytes()).decode("ascii"))
 
 
@@ -122,6 +133,16 @@ def main():
                              % (token, html.count(token)))
         html = html.replace(token, data_uri(f))
 
+    # --- partner brand marks ---------------------------------------------
+    for token, (name, mime) in BRAND_FILES.items():
+        f = BRAND / name
+        if not f.exists():
+            raise SystemExit("inflate: missing brand asset %s" % f)
+        if html.count(token) != 1:
+            raise SystemExit("inflate: brand token %s appears %d times"
+                             % (token, html.count(token)))
+        html = html.replace(token, data_uri(f, mime))
+
     # --- images ----------------------------------------------------------
     used = set(re.findall(r"\{\{DU_\d+\}\}", html))
     missing = used - set(assets)
@@ -153,6 +174,7 @@ def main():
     print("inflate: wrote %s" % OUT.relative_to(ROOT))
     print("  images   %d" % len(used))
     print("  fonts    %d" % len(FONT_FILES))
+    print("  brand    %d" % len(BRAND_FILES))
     print("  size     %.1f KB" % (len(html.encode()) / 1024))
     print("  dashes   clean, ASCII clean")
     return 0

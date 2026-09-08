@@ -448,6 +448,27 @@ def run(h, sub, resub, cut_block):
             '        <img src="{{DU_26}}" alt="PMT Property Management Toronto"></a>\n'
             '      <p style="margin-top:.6rem;font-size:.75rem"><a href="https://www.propertymanagementto.com" target="_blank" rel="noopener noreferrer">Property Management Toronto Inc.</a><br>PMT Realty Inc., Brokerage</p>',
             1, "footer pmt link")
+
+    # Nezam AI took the project marketing over in Sept 2026, so it carries a
+    # partner credit beside the developer and the manager. Placeholder wording
+    # until the scope line is settled.
+    h = sub(h,
+            '      <p style="margin-top:.6rem;font-size:.75rem"><a href="https://www.propertymanagementto.com" '
+            'target="_blank" rel="noopener noreferrer">Property Management Toronto Inc.</a><br>'
+            'PMT Realty Inc., Brokerage</p>\n'
+            '    </div>\n',
+            '      <p style="margin-top:.6rem;font-size:.75rem"><a href="https://www.propertymanagementto.com" '
+            'target="_blank" rel="noopener noreferrer">Property Management Toronto Inc.</a><br>'
+            'PMT Realty Inc., Brokerage</p>\n'
+            '    </div>\n'
+            '    <div class="foot-lockup">\n'
+            '      <span class="label foot-label">Marketing By</span>\n'
+            '      <a href="https://nezamai.com" target="_blank" rel="noopener noreferrer">\n'
+            '        <img class="nezam" src="{{NEZAM_LOCKUP}}" alt="Nezam AI"></a>\n'
+            '      <p style="margin-top:.6rem;font-size:.75rem">'
+            '<a href="https://nezamai.com" target="_blank" rel="noopener noreferrer">Nezam AI Consulting</a></p>\n'
+            '    </div>\n',
+            1, "footer nezam credit")
     h = sub(h,
             '    Demonstration concept prepared by Property Management Toronto Inc. for BS&#228;R Group of Companies. "Parkdale House" is a working\n'
             '    name for demonstration purposes. Imagery is concept rendering and does not represent final architecture, finishes or views.',
