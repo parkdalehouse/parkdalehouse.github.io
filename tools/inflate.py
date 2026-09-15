@@ -30,17 +30,32 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 ASSETS = ROOT / "v2" / "assets.json"
-FONTS = ROOT / "v2" / "fonts"
 BRAND = ROOT / "v2" / "brand"
 TOOL = ROOT / "review-tool.html"
 
+# Token -> file, relative to the repository root. The first five came with the
+# v2 build and live beside it; the rest are the 28 August board faces cut by
+# tools/build_fonts.py for the v3 font switcher, with their OFL licences.
 FONT_FILES = {
-    "{{FONT_LB400}}": "LibreBaskerville-Regular-latin.woff2",
-    "{{FONT_LB400I}}": "LibreBaskerville-Italic-latin.woff2",
-    "{{FONT_LB700}}": "LibreBaskerville-Bold-latin.woff2",
-    "{{FONT_DM}}": "DMSans-Variable-latin.woff2",
-    "{{FONT_DMI}}": "DMSans-Italic-latin.woff2",
+    "{{FONT_LB400}}": "v2/fonts/LibreBaskerville-Regular-latin.woff2",
+    "{{FONT_LB400I}}": "v2/fonts/LibreBaskerville-Italic-latin.woff2",
+    "{{FONT_LB700}}": "v2/fonts/LibreBaskerville-Bold-latin.woff2",
+    "{{FONT_DM}}": "v2/fonts/DMSans-Variable-latin.woff2",
+    "{{FONT_DMI}}": "v2/fonts/DMSans-Italic-latin.woff2",
+    "{{FONT_IS}}": "fonts/InstrumentSans-latin.woff2",
+    "{{FONT_INTER}}": "fonts/Inter-latin.woff2",
+    "{{FONT_OS}}": "fonts/OpenSans-latin.woff2",
+    "{{FONT_MANROPE}}": "fonts/Manrope-latin.woff2",
+    "{{FONT_MONT}}": "fonts/Montserrat-digits.woff2",
+    "{{FONT_JOST}}": "fonts/Jost-digits.woff2",
+    "{{FONT_POP400}}": "fonts/Poppins-Regular-digits.woff2",
+    "{{FONT_POP600}}": "fonts/Poppins-SemiBold-digits.woff2",
 }
+
+# v2 predates the switcher and carries only the original five. Every target
+# must use each of its tokens exactly once, and no target may leave one out.
+BASE_FONTS = ["{{FONT_LB400}}", "{{FONT_LB400I}}", "{{FONT_LB700}}",
+              "{{FONT_DM}}", "{{FONT_DMI}}"]
 
 # Partner marks that are not part of the original page. Built for v2 and
 # switched off there; see tools/v2_flags.py.
@@ -196,14 +211,21 @@ def main():
     assets = json.loads(ASSETS.read_text(encoding="utf-8"))
 
     # --- fonts -----------------------------------------------------------
+    fonts = 0
     for token, name in FONT_FILES.items():
-        f = FONTS / name
+        n = html.count(token)
+        if n == 0:
+            if token in BASE_FONTS:
+                raise SystemExit("inflate: %s is missing font token %s"
+                                 % (args.target, token))
+            continue          # a switcher face the target does not carry
+        if n != 1:
+            raise SystemExit("inflate: font token %s appears %d times" % (token, n))
+        f = ROOT / name
         if not f.exists():
-            raise SystemExit("inflate: missing font %s" % f)
-        if html.count(token) != 1:
-            raise SystemExit("inflate: font token %s appears %d times"
-                             % (token, html.count(token)))
+            raise SystemExit("inflate: missing font %s. Run tools/build_fonts.py" % f)
         html = html.replace(token, data_uri(f))
+        fonts += 1
 
     # --- partner brand marks ---------------------------------------------
     inlined = 0
@@ -255,7 +277,7 @@ def main():
     out.write_text(html, encoding="utf-8")
     print("inflate: wrote %s" % out.relative_to(ROOT))
     print("  images   %d" % len(used))
-    print("  fonts    %d" % len(FONT_FILES))
+    print("  fonts    %d of %d available" % (fonts, len(FONT_FILES)))
     print("  brand    %d of %d available" % (inlined, len(BRAND_FILES)))
     print("  size     %.1f KB" % (len(html.encode()) / 1024))
     print("  dashes   clean, ASCII clean")
