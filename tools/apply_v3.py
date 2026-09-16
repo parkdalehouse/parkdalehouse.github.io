@@ -126,6 +126,7 @@ def main():
 
     h = apply_css(h)
     h = apply_body(h)
+    h = apply_scope(h)
     h = apply_js(h)
     h = apply_fonts(h)
     h = apply_watermark(h)
@@ -133,7 +134,9 @@ def main():
     # Nothing may still call the building "The 501" or quote a rent. The 501
     # streetcar is a real TTC route and stays as a transit reference.
     for pat in (r"[Tt]he 501(?! streetcar)", r"THE 501", r"Premium Rentals",
-                r"Parkdale House"):
+                r"Parkdale House", r"answered live", r"24/7", r"24 hours a day",
+                r"any hour", r"resident portal", r"[Ee]mergency", r"33 plan",
+                r"leased and managed by", r"maintains the building"):
         m = re.search(pat, h)
         if m:
             raise SystemExit("apply_v3: %r survived at offset %d: ...%s..."
@@ -160,6 +163,11 @@ def apply_css(h):
 
 def apply_body(h):
     from v3_body import run
+    return run(h, sub, resub, cut_block)
+
+
+def apply_scope(h):
+    from v3_scope import run
     return run(h, sub, resub, cut_block)
 
 
