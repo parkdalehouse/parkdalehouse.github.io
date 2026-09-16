@@ -128,6 +128,7 @@ def main():
     h = apply_body(h)
     h = apply_js(h)
     h = apply_fonts(h)
+    h = apply_watermark(h)
 
     # Nothing may still call the building "The 501" or quote a rent. The 501
     # streetcar is a real TTC route and stays as a transit reference.
@@ -164,6 +165,11 @@ def apply_body(h):
 
 def apply_js(h):
     from v3_js import run
+    return run(h, sub, resub, cut_block)
+
+
+def apply_watermark(h):
+    from v3_watermark import run
     return run(h, sub, resub, cut_block)
 
 

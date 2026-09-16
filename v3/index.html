@@ -3,6 +3,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="1521 at 1521 Queen Street West. Luxury rentals on Queen West, Toronto: ninety-five purpose-built studio to three bedroom residences, steps from the 501 streetcar, Roncesvalles Village and the waterfront. Coming Soon Summer 2027.">
 <meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="copyright" content="Design and content copyright 2026 Property Management Toronto Inc. Preview for BSaR Group of Companies under proposal; not for reproduction.">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -710,9 +711,16 @@
   @media(max-width:560px){.fsw{left:.6rem;bottom:2.9rem;max-width:calc(100vw - 1.2rem)}
     .fsw-body{max-height:50vh}}
   @media print{.fsw{display:none}}
+
+  /* ---- preview layer: PMT design preview, no agreement executed yet ---- */
+  .pmt-preview{position:fixed;inset:0;z-index:9990;pointer-events:none;
+    background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='560' height='360'%3E%3Ctext x='280' y='180' text-anchor='middle' transform='rotate(-24 280 180)' font-family='Helvetica,Arial,sans-serif' font-size='15' letter-spacing='4' fill='%23808080'%3EPROPERTY MANAGEMENT TORONTO  %C2%B7  PREVIEW%3C/text%3E%3C/svg%3E") repeat;background-size:560px 360px;opacity:.05;
+    mix-blend-mode:normal}
+  @media print{.pmt-preview{position:absolute;opacity:.08}}
 </style>
 <script>document.documentElement.className += ' js';</script>
 
+<div class="pmt-preview" aria-hidden="true"></div>
 <nav id="nav" class="tone-deep">
   <a class="wordmark" href="#top" aria-label="1521, Luxury Rentals on Queen West">1521</a>
   <div class="nav-links">
