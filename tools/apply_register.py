@@ -5,27 +5,30 @@ Build the Phase 1 registration page from the v3 skeleton.
 Reads   v3/skeleton_v3.html              output of tools/apply_v3.py
 Writes  register/skeleton_register.html  still token-ised
 
-This is the page the hoarding points at, and Ahmed's brief for it from the
-8 September call is exact:
+Second build, 21 September 2026, to Claire Bodrug's markup of 18 September on
+the registration page (review tool, one pin, n8n executions 44870 and 44871):
 
-    "simply just one rendering and a lead intake form, like the register now
-     ... we can start off with something super simple ... we'll just compress
-     it into a lead intake form and then have it point there until phase two."
+    "Preference was to have a full registration page on the beige background
+     with the blue credit band at the bottom. Top left to have logo, luxury
+     rentals and coming soon. Under that have the Registration/Register now
+     section and form. To the right of the registration form have a carousel
+     of images in a call out box on the beige background to flip through.
+     This can show on a cell phone as a carousel below the registration form."
 
-Tyler, same call: "just the register now", and no offers, suite types or
-selections. So: one screen. No nav menu, no gallery section, no map, no
-realtor section, no amenities, no section headings, nothing to argue with.
+    "Our primary concern is the functionality and layout of the registration
+     page on phone screens. This is likely how most leads will view the page,
+     and it does not currently work as designed."
 
-Claire's markup 3 asked for a rendering and photography carousel. It is
-honoured as the background itself: three renders cross-fading behind the
-page with three dots and one caption line, rather than a gallery section that
-would have made this a second website.
+So the 15 September build (a rendering behind a card) is replaced: cream page,
+one column of mark, tagline, date line and the form on the left, a framed
+image carousel on the right, the blue partner band at the foot. On a phone it
+is one column in that order, mark, form, carousel, band, and nothing fixed
+sits over the intake. The 8 September scope holds: no menu, no gallery
+section, no map, no realtor section, no suite types, no offers.
 
-Rather than cut the v3 page down section by section, this takes v3's head,
-stylesheet and the two review switchers, and writes a new body. Everything
-that matters stays shared with v3: the palette, the type roles and the font
-switcher, the wordmark geometry, the button and form styling, and the review
-tool. Only the layout is this page's own.
+The carousel carries the exterior renderings and illustrative neighbourhood
+images that already exist in the site build. BSaR's edited photography is due
+25 September and replaces the illustrative slides in the same six slots.
 
 Rebuild:
     python3 tools/apply_v3.py \\
@@ -79,127 +82,137 @@ OLD_LD_DESC = (', steps from the 501 streetcar, Roncesvalles Village and the wat
 NEW_LD_DESC = '. Coming Soon Summer 2027.",'
 
 
-
 # ==========================================================================
-#  CSS for the one screen
+#  CSS
 # ==========================================================================
 
 REG_CSS = '''
   /* ======================= PHASE 1 REGISTRATION ========================
-     One screen. A rendering behind, the mark and one sentence on the left,
-     the intake card on the right, a thin partner strip at the foot. On a
-     phone it becomes one column and scrolls a little, which is the only
-     concession.
+     Claire, 18 September: cream page, the mark and the form on the left,
+     an image carousel in a framed call-out on the right, the blue partner
+     band at the foot. One column on a phone: mark, form, carousel, band.
      ==================================================================== */
   body.reg-page{overflow-x:hidden}
-  .reg{position:relative;min-height:100svh;display:grid;
-    grid-template-rows:auto 1fr auto auto;background:var(--deep-2);isolation:isolate}
-  .reg-bg{position:absolute;inset:0;z-index:0;overflow:hidden}
-  .reg-shot{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
-    object-position:center 38%;opacity:0;transition:opacity 1.5s var(--ease)}
-  .reg-shot.is-on{opacity:1}
-  /* markup 14 again: no colour cast over the render, only what the type needs */
-  .reg-scrim{position:absolute;inset:0;z-index:1;pointer-events:none;
-    background:linear-gradient(180deg,rgba(0,0,0,.42) 0%,rgba(0,0,0,.12) 26%,
-      rgba(0,0,0,.28) 62%,rgba(0,0,0,.72) 100%)}
-  @media(min-width:861px){
-    .reg-scrim{background:
-      linear-gradient(90deg,rgba(0,0,0,.62) 0%,rgba(0,0,0,.30) 46%,rgba(0,0,0,.12) 70%),
-      linear-gradient(180deg,rgba(0,0,0,.34) 0%,rgba(0,0,0,0) 22%,rgba(0,0,0,.52) 100%)}
-  }
-  .reg>:not(.reg-bg):not(.reg-scrim){position:relative;z-index:2}
-
-  .reg-bar{display:flex;align-items:center;justify-content:space-between;
-    gap:1rem;padding:1.5rem 2.4rem 0}
-  .reg-tel{color:var(--cream);text-decoration:none;font-size:.7rem;
-    letter-spacing:.18em;font-weight:600;white-space:nowrap;
-    font-variant-numeric:lining-nums tabular-nums;transition:color .3s}
-  .reg-tel:hover{color:var(--orange)}
-
-  .reg-main{display:grid;grid-template-columns:1fr minmax(360px,420px);
-    gap:3.5rem;align-items:center;padding:2.2rem 2.4rem;max-width:1280px;
-    width:100%;margin:0 auto}
-  .reg-say .wm-stack{font-size:calc(clamp(2.1rem,5.4vw,4.1rem) / var(--wm-cap))}
-  .reg-tag{font-family:var(--display);font-size:clamp(1rem,2vw,1.5rem);
-    letter-spacing:.04em;color:rgba(var(--cream-rgb),.95);margin-top:1.1rem;
-    text-shadow:0 1px 16px rgba(0,0,0,.6)}
-  .reg-soon{display:inline-flex;align-items:center;gap:.9rem;color:var(--cream);
-    font-size:.72rem;font-weight:600;letter-spacing:.24em;margin-top:1.1rem;
-    text-shadow:0 1px 14px rgba(0,0,0,.8)}
-  .reg-soon::before{content:"";flex:0 0 40px;height:2px;background:var(--orange)}
-  .reg-line{color:rgba(var(--cream-rgb),.9);max-width:40ch;margin-top:1.3rem;
-    font-size:.98rem;text-shadow:0 1px 14px rgba(0,0,0,.6)}
-
-  /* the card puts the cream surface tokens back, so the form, the labels and
-     the button look exactly as they do on the main site */
-  .reg-card{--fg:var(--ink);
+  .reg{position:relative;min-height:100svh;display:flex;flex-direction:column;
+    background:var(--cream);color:var(--ink);
+    --fg:var(--ink);
     --fg-70:rgba(var(--ink-rgb),.74);
     --fg-45:rgba(var(--ink-rgb),.54);
     --hair:rgba(var(--deep-rgb),.22);
     --accent:var(--burnt); --em:var(--deep);
-    --btn-on-accent:var(--cream); --btn-hover-bg:var(--deep); --btn-hover-fg:var(--cream);
-    color:var(--fg);background:var(--cream);padding:1.9rem 1.9rem 1.6rem;
-    box-shadow:0 30px 70px -30px rgba(0,0,0,.6)}
-  .reg-card h2{font-size:1.32rem;line-height:1.2}
-  .reg-card .label{color:var(--accent);display:block;margin-bottom:.55rem;font-size:.6rem}
-  .reg-card form{gap:.85rem;max-width:none;margin-top:1.25rem}
-  .reg-card label{font-size:.58rem;letter-spacing:.18em;margin-bottom:.32rem}
-  .reg-card input{padding:.68rem .8rem;font-size:.9rem}
-  .reg-card .btn{width:100%;justify-content:center;padding:.92rem 1rem}
-  .reg-card .form-done{margin-top:1.25rem;padding:1.4rem;max-width:none}
-  .reg-fine{font-size:.7rem;line-height:1.55;color:var(--fg-70);margin-top:.85rem}
+    --btn-on-accent:var(--cream); --btn-hover-bg:var(--deep); --btn-hover-fg:var(--cream)}
+
+  .reg-bar{display:flex;align-items:center;justify-content:space-between;gap:1rem;
+    padding:1.4rem 2.4rem 0;max-width:1280px;width:100%;margin:0 auto}
+  .reg-bar .wordmark{color:var(--deep)}
+  .reg-bar .wordmark:hover{color:var(--accent)}
+  .reg-tel{color:var(--deep);text-decoration:none;font-size:.7rem;
+    letter-spacing:.18em;font-weight:600;white-space:nowrap;
+    font-variant-numeric:lining-nums tabular-nums;transition:color .3s}
+  .reg-tel:hover{color:var(--accent)}
+
+  .reg-main{flex:1 0 auto;display:grid;grid-template-columns:minmax(340px,480px) 1fr;
+    gap:4.5rem;align-items:start;padding:2.2rem 2.4rem 3rem;max-width:1280px;
+    width:100%;margin:0 auto}
+
+  /* the mark, on cream: deep blue digits, burnt orange bar */
+  .reg-say .wm-stack{font-size:calc(clamp(2.2rem,4.6vw,3.6rem) / var(--wm-cap));color:var(--deep)}
+  .reg-tag{font-family:var(--display);font-size:clamp(1.05rem,1.8vw,1.4rem);
+    letter-spacing:.04em;color:var(--deep);margin-top:1rem}
+  .reg-soon{display:inline-flex;align-items:center;gap:.9rem;color:var(--accent);
+    font-size:.7rem;font-weight:600;letter-spacing:.24em;text-transform:uppercase;margin-top:.9rem}
+  .reg-soon::before{content:"";flex:0 0 40px;height:2px;background:var(--accent)}
+  .reg-line{color:var(--fg-70);max-width:44ch;margin-top:1.1rem;font-size:.98rem}
+
+  /* the form, under the mark */
+  .reg-form{margin-top:2.2rem;padding-top:1.8rem;border-top:1px solid var(--hair)}
+  .reg-form .label{color:var(--accent);display:block;margin-bottom:.55rem;font-size:.6rem}
+  .reg-form h2{font-size:1.5rem;line-height:1.2}
+  .reg-form form{gap:.9rem;max-width:none;margin-top:1.3rem}
+  .reg-form label{font-size:.58rem;letter-spacing:.18em;margin-bottom:.32rem}
+  .reg-form input{padding:.72rem .85rem;font-size:.95rem}
+  .reg-form .btn{width:100%;justify-content:center;padding:.95rem 1rem}
+  .reg-form .form-done{margin-top:1.25rem;padding:1.4rem;max-width:none}
+  .reg-fine{font-size:.72rem;line-height:1.55;color:var(--fg-70);margin-top:.85rem}
   .reg-fine a{color:var(--fg);border-bottom:1px solid var(--accent);
     text-decoration:none;padding-bottom:.08rem;white-space:nowrap}
   .reg-fine a:hover{color:var(--accent)}
+  .reg-note{color:var(--fg-45);letter-spacing:.06em;text-transform:uppercase;font-size:.58rem;margin-top:.7rem}
 
-  .reg-meta{display:flex;align-items:center;justify-content:space-between;gap:1rem;
-    flex-wrap:wrap;padding:0 2.4rem 1rem;max-width:1280px;width:100%;margin:0 auto}
-  .reg-dots{display:flex;gap:.45rem}
-  .reg-dots button{width:26px;height:3px;padding:0;border:0;cursor:pointer;
-    background:rgba(var(--cream-rgb),.3);transition:background .3s}
-  .reg-dots button[aria-selected="true"]{background:var(--orange)}
-  .reg-cap{color:rgba(var(--cream-rgb),.62);text-align:right}
+  /* the carousel call-out: a framed box on the cream, sticky beside the form */
+  .reg-gal{position:sticky;top:1.6rem;border:1px solid var(--hair);padding:.9rem;
+    background:rgba(255,255,255,.35)}
+  .gal-frame{position:relative;aspect-ratio:4/3;overflow:hidden;background:var(--deep-2);
+    touch-action:pan-y}
+  .gal-frame img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+    opacity:0;transition:opacity .9s var(--ease);user-select:none;-webkit-user-drag:none}
+  .gal-frame img.is-on{opacity:1}
+  .gal-btn{position:absolute;top:50%;transform:translateY(-50%);z-index:2;width:40px;height:40px;
+    padding:0;border:0;cursor:pointer;background:rgba(var(--cream-rgb),.88);color:var(--deep);
+    display:grid;place-items:center;transition:background .25s,color .25s}
+  .gal-btn:hover{background:var(--deep);color:var(--cream)}
+  .gal-btn::before{content:"";width:9px;height:9px;border-left:2px solid currentColor;
+    border-bottom:2px solid currentColor;transform:rotate(45deg);margin-left:4px}
+  .gal-btn.next::before{transform:rotate(-135deg);margin-left:-4px}
+  .gal-btn.prev{left:.6rem}
+  .gal-btn.next{right:.6rem}
+  .gal-meta{display:flex;align-items:center;justify-content:space-between;gap:1rem;
+    margin-top:.8rem;min-height:1.2rem}
+  .gal-cap{font-size:.66rem;letter-spacing:.06em;text-transform:uppercase;color:var(--fg-70);
+    font-weight:500;margin:0}
+  .gal-dots{display:flex;gap:.4rem;flex:0 0 auto}
+  .gal-dots button{width:22px;height:3px;padding:0;border:0;cursor:pointer;
+    background:rgba(var(--deep-rgb),.22);transition:background .3s}
+  .gal-dots button[aria-selected="true"]{background:var(--accent)}
+  .gal-note{font-size:.6rem;letter-spacing:.04em;color:var(--fg-45);margin:.6rem 0 0}
 
+  /* the blue credit band at the foot */
   .reg-foot{display:flex;align-items:center;gap:2.6rem;flex-wrap:wrap;
-    padding:.9rem 2.4rem 1.1rem;border-top:1px solid rgba(var(--cream-rgb),.16);
-    background:rgba(var(--deep-2-rgb),.86);backdrop-filter:blur(6px)}
+    padding:1.1rem 2.4rem 1.2rem;background:var(--deep-2);color:var(--cream)}
+  .reg-foot-in{display:flex;align-items:center;gap:2.6rem;flex-wrap:wrap;
+    max-width:1280px;width:100%;margin:0 auto}
   .reg-lock{display:flex;align-items:center;gap:.8rem}
   .reg-lock small{font-size:.52rem;letter-spacing:.22em;text-transform:uppercase;
     color:rgba(var(--cream-rgb),.55);font-weight:600;white-space:nowrap}
   .reg-lock img{height:17px;width:auto;opacity:.92;display:block}
   .reg-lock img.tall{height:25px}
   .reg-legal{margin-left:auto;font-size:.52rem;letter-spacing:.06em;color:rgba(var(--cream-rgb),.4)}
+  /* the two review switchers move to the bottom right on this page, so they
+     never sit over the form column; the band keeps clear of them */
+  @media(min-width:861px){
+    .reg-page .pal,.reg-page .fsw{left:auto;right:1rem}
+    .reg-foot-in{padding-right:190px}
+  }
 
-  /* the two review switchers sit fixed at the bottom left; keep the lockups
-     and, on a phone, the last of the page clear of them */
-  @media(min-width:861px){.reg-foot{padding-left:190px}}
-  .reg-note{color:var(--fg-45);letter-spacing:.06em;text-transform:uppercase;font-size:.58rem;margin-top:.7rem}
+  @media(max-width:1080px){
+    .reg-main{grid-template-columns:minmax(320px,440px) 1fr;gap:3rem}
+  }
   @media(max-width:860px){
-    .reg{grid-template-rows:auto auto auto auto;padding-bottom:0}
-    .reg-main{grid-template-columns:1fr;gap:1.2rem;padding:1rem 1.4rem 1.2rem}
-    .reg-say .wm-stack{font-size:calc(1.9rem / var(--wm-cap))}
-    .reg-tag{margin-top:.7rem;font-size:1.05rem}
-    .reg-soon{margin-top:.7rem;font-size:.66rem}
-    .reg-line{max-width:none;margin-top:.8rem;font-size:.9rem}
-    .reg-card{padding:1.3rem 1.25rem 1.2rem}
-    .reg-card h2{font-size:1.2rem}
-    .reg-card form{gap:.6rem;margin-top:.9rem}
-    .reg-card label{margin-bottom:.24rem}
-    .reg-card input{padding:.56rem .7rem}
-    .reg-card .btn{padding:.8rem 1rem}
-    .reg-fine{margin-top:.6rem}
-    .reg-bar{padding:1rem 1.4rem 0}
-    .reg-meta{padding:0 1.4rem .7rem}
-    .reg-cap{text-align:left;flex:1 0 100%}
-    .reg-foot{gap:1.2rem;padding:.9rem 1.4rem 1rem}
+    .reg-bar{padding:1rem 1.25rem 0}
+    .reg-main{grid-template-columns:1fr;gap:1.8rem;padding:1.2rem 1.25rem 2rem}
+    .reg-say .wm-stack{font-size:calc(2rem / var(--wm-cap))}
+    .reg-tag{margin-top:.7rem;font-size:.98rem;letter-spacing:.03em}
+    .reg-soon{margin-top:.7rem;font-size:.64rem}
+    .reg-line{max-width:none;margin-top:.8rem;font-size:.92rem}
+    .reg-form{margin-top:1.5rem;padding-top:1.3rem}
+    .reg-form h2{font-size:1.35rem}
+    .reg-form form{gap:.7rem;margin-top:1rem}
+    .reg-form label{margin-bottom:.24rem}
+    .reg-form input{padding:.7rem .8rem;font-size:1rem}
+    .reg-form .btn{padding:.9rem 1rem}
+    .reg-gal{position:static;padding:.6rem}
+    .gal-btn{width:36px;height:36px}
+    .reg-foot{padding:1rem 1.25rem 1.1rem}
+    .reg-foot-in{gap:1.1rem}
+    .reg-legal{margin-left:0;flex:1 0 100%}
     /* review controls: out of the fixed corner, into the flow under the
-       footer, so nothing sits on top of the intake on a phone */
-    .reg-page .pal,.reg-page .fsw{position:static;display:inline-flex;margin:.8rem 0 0 1.4rem;
-      box-shadow:none;max-width:calc(100vw - 2.8rem)}
+       band, so nothing sits on top of the intake on a phone */
+    .reg-page .pal,.reg-page .fsw{position:static;display:inline-flex;margin:.8rem 0 0 1.25rem;
+      box-shadow:none;max-width:calc(100vw - 2.5rem)}
     .reg-page .fsw{display:block;margin-bottom:1.2rem}
     .reg-page .fsw-body{max-height:none}
   }
-  @media(prefers-reduced-motion:reduce){.reg-shot{transition:none}}
+  @media(prefers-reduced-motion:reduce){.gal-frame img{transition:none}}
 '''
 
 
@@ -207,14 +220,33 @@ REG_CSS = '''
 #  The body
 # ==========================================================================
 
+# Six slots. The photography due 25 September replaces slots 4 to 6 first.
+SLIDES = [
+    ("{{DU_3}}",  "1521 Queen Street West. Concept rendering."),
+    ("{{DU_12}}", "The streetcar at the front door. Concept rendering."),
+    ("{{DU_24}}", "The entrance on Queen Street West. Concept rendering."),
+    ("{{DU_18}}", "Queen West at street level. Illustrative image."),
+    ("{{DU_20}}", "Parks and markets nearby. Illustrative image."),
+    ("{{DU_22}}", "The waterfront, minutes south. Illustrative image."),
+]
+
+
+def slides_html():
+    imgs = []
+    dots = []
+    for i, (tok, cap) in enumerate(SLIDES):
+        on = " is-on" if i == 0 else ""
+        imgs.append('    <img class="gal-shot%s" src="%s" alt="%s" data-cap="%s" draggable="false">'
+                    % (on, tok, cap.replace('"', ""), cap))
+        dots.append('      <button type="button" role="tab" aria-selected="%s" aria-label="Image %d of %d"></button>'
+                    % ("true" if i == 0 else "false", i + 1, len(SLIDES)))
+    return "\n".join(imgs), "\n".join(dots)
+
+
+IMGS, DOTS = slides_html()
+
 BODY = '''<div class="pmt-preview" aria-hidden="true"></div>
-<div class="reg tone-deep" id="top">
-  <div class="reg-bg" aria-hidden="true">
-    <img class="reg-shot is-on" src="{{DU_3}}" alt="">
-    <img class="reg-shot" src="{{DU_24}}" alt="">
-    <img class="reg-shot" src="{{DU_7}}" alt="">
-  </div>
-  <div class="reg-scrim" aria-hidden="true"></div>
+<div class="reg" id="top">
 
   <header class="reg-bar">
     <a class="wordmark" href="#top" aria-label="1521, Luxury Rentals on Queen West">1521</a>
@@ -231,40 +263,48 @@ BODY = '''<div class="pmt-preview" aria-hidden="true"></div>
       <p class="reg-tag">Luxury Rentals on Queen West</p>
       <p class="reg-soon">Coming Soon Summer 2027</p>
       <p class="reg-line">Ninety-five purpose-built residences at 1521 Queen Street West. Register for first access.</p>
+
+      <div class="reg-form">
+        <span class="label">Registration</span>
+        <h2>Register <em>Now.</em></h2>
+        <form id="waitlist" onsubmit="event.preventDefault();this.style.display='none';document.getElementById('done').style.display='block';">
+          <div><label for="fn">First Name</label><input id="fn" name="fn" autocomplete="given-name" required></div>
+          <div><label for="ln">Last Name</label><input id="ln" name="ln" autocomplete="family-name" required></div>
+          <div class="full"><label for="em">Email</label><input id="em" name="em" type="email" autocomplete="email" inputmode="email" required></div>
+          <div class="full"><label for="ph">Phone</label><input id="ph" name="ph" type="tel" autocomplete="tel" inputmode="tel"></div>
+          <div class="full"><button class="btn btn-solid btn-mag" type="submit">Register Now</button></div>
+        </form>
+        <div class="form-done tone-deep" id="done"><b>Preview only.</b><br>This form is not connected yet and nothing was sent. Registrations will be captured once the page is live at the final domain.</div>
+        <p class="reg-fine reg-note">Design preview. Registrations are not yet being captured.</p>
+        <p class="reg-fine">Realtors are welcome to register on behalf of a client.</p>
+        <p class="reg-fine">Prefer to talk? Call <a href="tel:+14164519499">416.451.9499</a>.</p>
+      </div>
     </div>
 
-    <div class="reg-card">
-      <span class="label">Registration</span>
-      <h2>Register <em>Now.</em></h2>
-      <form id="waitlist" onsubmit="event.preventDefault();this.style.display='none';document.getElementById('done').style.display='block';">
-        <div><label for="fn">First Name</label><input id="fn" required></div>
-        <div><label for="ln">Last Name</label><input id="ln" required></div>
-        <div class="full"><label for="em">Email</label><input id="em" type="email" required></div>
-        <div class="full"><label for="ph">Phone</label><input id="ph" type="tel"></div>
-        <div class="full"><button class="btn btn-solid btn-mag" type="submit">Register Now</button></div>
-      </form>
-      <div class="form-done tone-deep" id="done"><b>Preview only.</b><br>This form is not connected yet and nothing was sent. Registrations will be captured once the page is live at the final domain.</div>
-      <p class="reg-fine reg-note">Design preview. Registrations are not yet being captured.</p>
-      <p class="reg-fine">Realtors are welcome to register on behalf of a client.</p>
-      <p class="reg-fine">Prefer to talk? Call <a href="tel:+14164519499">416.451.9499</a>.</p>
-    </div>
+    <aside class="reg-gal" id="gal" aria-label="Images">
+      <div class="gal-frame" id="galframe">
+''' + IMGS + '''
+        <button type="button" class="gal-btn prev" id="galprev" aria-label="Previous image"></button>
+        <button type="button" class="gal-btn next" id="galnext" aria-label="Next image"></button>
+      </div>
+      <div class="gal-meta">
+        <p class="gal-cap" id="galcap">''' + SLIDES[0][1] + '''</p>
+        <div class="gal-dots" id="galdots" role="tablist" aria-label="Choose an image">
+''' + DOTS + '''
+        </div>
+      </div>
+      <p class="gal-note">Concept renderings and illustrative images. Photography to follow.</p>
+    </aside>
   </main>
 
-  <div class="reg-meta">
-    <div class="reg-dots" id="regdots" role="tablist" aria-label="Renderings">
-      <button type="button" role="tab" aria-selected="true" aria-label="Rendering 1 of 3"></button>
-      <button type="button" role="tab" aria-selected="false" aria-label="Rendering 2 of 3"></button>
-      <button type="button" role="tab" aria-selected="false" aria-label="Rendering 3 of 3"></button>
-    </div>
-    <p class="reg-cap ph-cap">Concept renderings. Photography to come.</p>
-  </div>
-
   <footer class="reg-foot">
-    <span class="reg-lock"><small>A Development By</small>
-      <a href="https://www.bsargroup.com" target="_blank" rel="noopener noreferrer"><img src="{{DU_25}}" alt="BS&#228;R Group of Companies"></a></span>
-    <span class="reg-lock"><small>Leasing Management By</small>
-      <a href="https://www.propertymanagementto.com" target="_blank" rel="noopener noreferrer"><img class="tall" src="{{DU_26}}" alt="PMT Property Management Toronto"></a></span>
-    <span class="reg-legal">Design and content copyright 2026 Property Management Toronto Inc. Preview.</span>
+    <div class="reg-foot-in">
+      <span class="reg-lock"><small>A Development By</small>
+        <a href="https://www.bsargroup.com" target="_blank" rel="noopener noreferrer"><img src="{{DU_25}}" alt="BS&#228;R Group of Companies"></a></span>
+      <span class="reg-lock"><small>Leasing Management By</small>
+        <a href="https://www.propertymanagementto.com" target="_blank" rel="noopener noreferrer"><img class="tall" src="{{DU_26}}" alt="PMT Property Management Toronto"></a></span>
+      <span class="reg-legal">Design and content copyright 2026 Property Management Toronto Inc. Preview.</span>
+    </div>
   </footer>
 </div>
 
@@ -276,32 +316,50 @@ BODY = '''<div class="pmt-preview" aria-hidden="true"></div>
 # ==========================================================================
 
 REG_JS = '''<script>
-/* Markup 3, compressed. Claire asked for a rendering and photography
-   carousel; on a one-screen intake page that is the background itself.
-   Three renders, a six second hold, three dots to drive it by hand. A
-   reader who prefers reduced motion gets the first render and the dots. */
+/* Image carousel in the call-out box: six slides, a five second hold,
+   arrows, dots, a swipe on touch, pause while the pointer is over it. A
+   reader who prefers reduced motion gets the first image and the controls. */
 (function(){
-  var shots = [].slice.call(document.querySelectorAll('.reg-shot'));
-  var dots = [].slice.call(document.querySelectorAll('#regdots button'));
-  if(shots.length < 2 || dots.length !== shots.length) return;
-  var i = 0, timer = null;
+  var frame = document.getElementById('galframe');
+  var shots = [].slice.call(document.querySelectorAll('.gal-shot'));
+  var dots = [].slice.call(document.querySelectorAll('#galdots button'));
+  var cap = document.getElementById('galcap');
+  if(!frame || shots.length < 2 || dots.length !== shots.length) return;
+  var i = 0, timer = null, hover = false;
   var reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   function show(n){
     i = (n + shots.length) % shots.length;
     shots.forEach(function(s, k){ s.classList.toggle('is-on', k === i); });
     dots.forEach(function(d, k){ d.setAttribute('aria-selected', k === i ? 'true' : 'false'); });
+    if(cap) cap.textContent = shots[i].getAttribute('data-cap') || '';
   }
   function play(){
-    if(reduced) return;
     clearInterval(timer);
+    if(reduced) return;
     timer = setInterval(function(){
-      if(!document.hidden) show(i + 1);
-    }, 6000);
+      if(!document.hidden && !hover) show(i + 1);
+    }, 5000);
   }
   dots.forEach(function(d, k){
     d.addEventListener('click', function(){ show(k); play(); });
   });
+  document.getElementById('galprev').addEventListener('click', function(){ show(i - 1); play(); });
+  document.getElementById('galnext').addEventListener('click', function(){ show(i + 1); play(); });
+  frame.addEventListener('pointerenter', function(){ hover = true; });
+  frame.addEventListener('pointerleave', function(){ hover = false; });
+
+  /* swipe: a horizontal move of 40 px or more between pointer down and up */
+  var x0 = null;
+  frame.addEventListener('pointerdown', function(e){ x0 = e.clientX; });
+  frame.addEventListener('pointerup', function(e){
+    if(x0 === null) return;
+    var dx = e.clientX - x0; x0 = null;
+    if(Math.abs(dx) < 40) return;
+    show(dx < 0 ? i + 1 : i - 1); play();
+  });
+  frame.addEventListener('pointercancel', function(){ x0 = null; });
+
   show(0);
   play();
 
@@ -344,7 +402,7 @@ def main():
                              % (label, head.count(old)))
         head = head.replace(old, new)
 
-    # ---- the one-screen stylesheet --------------------------------------
+    # ---- the stylesheet --------------------------------------------------
     if head.count("\n</style>") != 1:
         raise SystemExit("apply_register: cannot find the end of the stylesheet")
     head = head.replace("\n</style>", "\n" + REG_CSS + "</style>")
@@ -357,7 +415,8 @@ def main():
 
     # ---- guards ----------------------------------------------------------
     for pat in (r"[Tt]he 501", r"THE 501", r"Premium Rentals", r"Parkdale House",
-                r"\$[0-9]", r"answered live", r"24 hours", r"24/7", r"follow up within"):
+                r"\$[0-9]", r"answered live", r"24 hours", r"24/7", r"follow up within",
+                r"resident portal", r"Emergency", r"leased and managed by"):
         m = re.search(pat, h)
         if m:
             raise SystemExit("apply_register: %r survived at %d: ...%s..."
@@ -382,11 +441,13 @@ def main():
         if banned in body_only:
             raise SystemExit("apply_register: %s survived (%s)" % (banned, why))
     for need in ('id="fn"', 'id="ln"', 'id="em"', 'id="ph"', 'id="waitlist"',
-                 'id="done"', 'class="wm-stack"', 'id="regdots"', 'reg-note',
-                 'Preview only.',
+                 'id="done"', 'class="wm-stack"', 'id="gal"', 'id="galdots"', 'id="galprev"',
+                 'reg-note', 'Preview only.', 'class="reg-foot"',
                  "Coming Soon Summer 2027", "bsargroup.com", "propertymanagementto.com"):
         if need not in body_only:
             raise SystemExit("apply_register: %s is missing" % need)
+    if body_only.count('class="gal-shot') != len(SLIDES):
+        raise SystemExit("apply_register: expected %d slides" % len(SLIDES))
 
     OUT.parent.mkdir(exist_ok=True)
     OUT.write_text(h, encoding="utf-8")
@@ -398,5 +459,4 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.path.insert(0, str(Path(__file__).resolve().parent))
-    raise SystemExit(main())
+    sys.exit(main())
