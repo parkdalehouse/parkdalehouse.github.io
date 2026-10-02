@@ -130,6 +130,7 @@ def main():
     h = apply_js(h)
     h = apply_fonts(h)
     h = apply_watermark(h)
+    h = apply_r4(h)
 
     # Nothing may still call the building "The 501" or quote a rent. The 501
     # streetcar is a real TTC route and stays as a transit reference.
@@ -173,6 +174,11 @@ def apply_scope(h):
 
 def apply_js(h):
     from v3_js import run
+    return run(h, sub, resub, cut_block)
+
+
+def apply_r4(h):
+    from v3_r4 import run
     return run(h, sub, resub, cut_block)
 
 

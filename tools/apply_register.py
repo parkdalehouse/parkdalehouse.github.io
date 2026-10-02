@@ -30,6 +30,33 @@ The carousel carries the exterior renderings and illustrative neighbourhood
 images that already exist in the site build. BSaR's edited photography is due
 25 September and replaces the illustrative slides in the same six slots.
 
+Third build, 2 October 2026, to Claire's eight pins of 25 September (n8n
+execution 52221), her logo selects of 29 September and Jacob Cote's final
+neighbourhood photography:
+
+    pin 1  layout as built on 21 September, kept
+    pin 2  "Remove or use full word mark": the small 1521 in the top bar is gone
+    pin 3  "Coming Soon Summer 2027" reads "Move-In Summer 2027"
+    pin 4  the streetcar exterior leads the carousel (sky and neighbours re-rendered)
+    pin 5  the line reads "Boutique residences at 1521 Queen Street West."
+    pin 6  the carousel note is gone; image, rendering and move-in disclaimer
+           sit in small print at the base of the page, with the photo credit
+    pin 7  no phone number until BSaR's forwarding line exists
+    pin 8  the 15/21 placeholder is replaced by the selected logo system
+
+The mark is C23, the primary wordmark, drawn inline from brand/1521_marks.json
+(tools/logo_1521.py). A review control replaces the palette dot (Blue 072 C is
+locked) and shows C23 in each brand colour, the C05 badge and the C24 stacked
+cut, as Claire asked: "mock-up the Registration page with the C23 primary logo
+in the different accent colours" and "a mockup of the registration page with
+C05". ?logo=c05 (or c23, c23-orange, c23-burnt, c23-two, c24) in the address
+opens the page on that option. The C02 dot is the favicon.
+
+The carousel is the exterior rendering plus six of Jacob's landscape frames,
+served as files from /photos/ (original filenames and embedded copyright kept,
+long edge 1800 px) rather than inlined, which also takes the page off the
+2.7 MB single file.
+
 Rebuild:
     python3 tools/apply_v3.py \\
       && python3 tools/apply_register.py \\
@@ -39,6 +66,9 @@ Rebuild:
 import re
 import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from logo_1521 import inline  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "v3" / "skeleton_v3.html"
@@ -67,19 +97,19 @@ def take(html, start, end, label, include_end=True):
 OLD_TITLE = "<title>1521 | Luxury Rentals on Queen West</title>"
 NEW_TITLE = "<title>1521 | Register for Phase 1</title>"
 
-OLD_DESC = ('<meta name="description" content="1521 at 1521 Queen Street West. '
-            'Luxury rentals on Queen West, Toronto: ninety-five purpose-built studio '
-            'to three bedroom residences, steps from the 501 streetcar, Roncesvalles '
-            'Village and the waterfront. Coming Soon Summer 2027.">')
-NEW_DESC = ('<meta name="description" content="Register for Phase 1 at 1521, '
-            '1521 Queen Street West. Luxury rentals on Queen West, Toronto. '
-            'Coming Soon Summer 2027.">')
+# the v3 head as tools/v3_r4.py leaves it
+OLD_DESC = ('<meta name="description" content="1521 at 1521 Queen Street West. Luxury rentals '
+            'on Queen West, Toronto: boutique studio to three bedroom residences, steps from the '
+            '501 streetcar, Roncesvalles Village and the waterfront. Move-in Summer 2027.">')
+NEW_DESC = ('<meta name="description" content="Register for first access to 1521, '
+            'boutique residences at 1521 Queen Street West. Luxury rentals on Queen West, '
+            'Toronto. Move-in Summer 2027.">')
 
 # the JSON-LD description inherited from v3 names the streetcar; the one-screen
 # page says less, and the guard below refuses any "the 501" anyway.
 OLD_LD_DESC = (', steps from the 501 streetcar, Roncesvalles Village and the waterfront. '
-               'Coming Soon Summer 2027.",')
-NEW_LD_DESC = '. Coming Soon Summer 2027.",'
+               'Move-in Summer 2027.",')
+NEW_LD_DESC = '. Move-in Summer 2027.",'
 
 
 # ==========================================================================
@@ -102,23 +132,31 @@ REG_CSS = '''
     --accent:var(--burnt); --em:var(--deep);
     --btn-on-accent:var(--cream); --btn-hover-bg:var(--deep); --btn-hover-fg:var(--cream)}
 
-  .reg-bar{display:flex;align-items:center;justify-content:space-between;gap:1rem;
-    padding:1.4rem 2.4rem 0;max-width:1280px;width:100%;margin:0 auto}
-  .reg-bar .wordmark{color:var(--deep)}
-  .reg-bar .wordmark:hover{color:var(--accent)}
-  .reg-tel{color:var(--deep);text-decoration:none;font-size:.7rem;
-    letter-spacing:.18em;font-weight:600;white-space:nowrap;
-    font-variant-numeric:lining-nums tabular-nums;transition:color .3s}
-  .reg-tel:hover{color:var(--accent)}
-
   .reg-main{flex:1 0 auto;display:grid;grid-template-columns:minmax(340px,480px) 1fr;
-    gap:4.5rem;align-items:start;padding:2.2rem 2.4rem 3rem;max-width:1280px;
+    gap:4.5rem;align-items:start;padding:3rem 2.4rem 2.4rem;max-width:1280px;
     width:100%;margin:0 auto}
 
-  /* the mark, on cream: deep blue digits, burnt orange bar */
-  .reg-say .wm-stack{font-size:calc(clamp(2.2rem,4.6vw,3.6rem) / var(--wm-cap));color:var(--deep)}
+  /* the 1521 logo system (BSaR selects, 29 September), drawn inline so the
+     review control can recolour it: C23 primary by default */
+  :root{--lg-num:var(--deep);--lg-word:var(--deep);--lg-acc:var(--burnt)}
+  :root[data-logo="c23-orange"]{--lg-num:#FD5100;--lg-word:#FD5100}
+  :root[data-logo="c23-burnt"]{--lg-num:var(--burnt);--lg-word:var(--burnt)}
+  :root[data-logo="c23-two"]{--lg-word:#FD5100}
+  .lg .lg-n{fill:var(--lg-num)}
+  .lg .lg-w{fill:var(--lg-word)}
+  .lg .lg-a{fill:var(--lg-acc)}
+  .lg .lg-k{fill:var(--cream)}
+  .lg .lg-r1{stroke:var(--lg-num)}
+  .lg .lg-r2{stroke:var(--lg-acc)}
+  .reg-logo{display:block;line-height:0}
+  .reg-logo .lg{display:none;height:auto}
+  .reg-logo .lg-c23{display:block;width:clamp(150px,14vw,186px)}
+  :root[data-logo="c05"] .reg-logo .lg-c23,
+  :root[data-logo="c24"] .reg-logo .lg-c23{display:none}
+  :root[data-logo="c05"] .reg-logo .lg-c05{display:block;width:clamp(132px,12vw,160px)}
+  :root[data-logo="c24"] .reg-logo .lg-c24{display:block;width:clamp(70px,6.4vw,86px)}
   .reg-tag{font-family:var(--display);font-size:clamp(1.05rem,1.8vw,1.4rem);
-    letter-spacing:.04em;color:var(--deep);margin-top:1rem}
+    letter-spacing:.04em;color:var(--deep);margin-top:1.5rem}
   .reg-soon{display:inline-flex;align-items:center;gap:.9rem;color:var(--accent);
     font-size:.7rem;font-weight:600;letter-spacing:.24em;text-transform:uppercase;margin-top:.9rem}
   .reg-soon::before{content:"";flex:0 0 40px;height:2px;background:var(--accent)}
@@ -164,7 +202,20 @@ REG_CSS = '''
   .gal-dots button{width:22px;height:3px;padding:0;border:0;cursor:pointer;
     background:rgba(var(--deep-rgb),.22);transition:background .3s}
   .gal-dots button[aria-selected="true"]{background:var(--accent)}
-  .gal-note{font-size:.6rem;letter-spacing:.04em;color:var(--fg-45);margin:.6rem 0 0}
+  .reg-small{max-width:1280px;width:100%;margin:0 auto;padding:0 2.4rem 1.6rem;
+    font-size:.62rem;line-height:1.6;color:var(--fg-45)}
+  .reg-small p{max-width:120ch}
+  .reg-small p+p{margin-top:.35rem}
+  .reg-small a{color:var(--fg-70);text-decoration:none;border-bottom:1px solid var(--hair)}
+  .reg-small a:hover{color:var(--accent)}
+
+  /* logo review control: the palette dot's slot, since Blue 072 C is locked */
+  .lsw{flex-wrap:wrap;border-radius:16px;max-width:calc(100vw - 2rem)}
+  .lsw button{width:auto;height:auto;border-radius:999px;padding:.34rem .6rem;
+    background:transparent;color:rgba(var(--cream-rgb),.86);border:1px solid rgba(var(--cream-rgb),.28);
+    font:600 .56rem/1 var(--sans);letter-spacing:.06em}
+  .lsw button:hover{transform:none;background:rgba(var(--cream-rgb),.12)}
+  .lsw button[aria-pressed="true"]{background:var(--cream);color:var(--deep);box-shadow:none;transform:none}
 
   /* the blue credit band at the foot */
   .reg-foot{display:flex;align-items:center;gap:2.6rem;flex-wrap:wrap;
@@ -188,10 +239,12 @@ REG_CSS = '''
     .reg-main{grid-template-columns:minmax(320px,440px) 1fr;gap:3rem}
   }
   @media(max-width:860px){
-    .reg-bar{padding:1rem 1.25rem 0}
-    .reg-main{grid-template-columns:1fr;gap:1.8rem;padding:1.2rem 1.25rem 2rem}
-    .reg-say .wm-stack{font-size:calc(2rem / var(--wm-cap))}
-    .reg-tag{margin-top:.7rem;font-size:.98rem;letter-spacing:.03em}
+    .reg-main{grid-template-columns:1fr;gap:1.8rem;padding:1.6rem 1.25rem 1.6rem}
+    .reg-logo .lg-c23{width:140px}
+    :root[data-logo="c05"] .reg-logo .lg-c05{width:122px}
+    :root[data-logo="c24"] .reg-logo .lg-c24{width:64px}
+    .reg-small{padding:0 1.25rem 1.3rem}
+    .reg-tag{margin-top:1.1rem;font-size:.98rem;letter-spacing:.03em}
     .reg-soon{margin-top:.7rem;font-size:.64rem}
     .reg-line{max-width:none;margin-top:.8rem;font-size:.92rem}
     .reg-form{margin-top:1.5rem;padding-top:1.3rem}
@@ -201,6 +254,7 @@ REG_CSS = '''
     .reg-form input{padding:.7rem .8rem;font-size:1rem}
     .reg-form .btn{padding:.9rem 1rem}
     .reg-gal{position:static;padding:.6rem}
+    .gal-dots button{width:12px}
     .gal-btn{width:36px;height:36px}
     .reg-foot{padding:1rem 1.25rem 1.1rem}
     .reg-foot-in{gap:1.1rem}
@@ -220,16 +274,19 @@ REG_CSS = '''
 #  The body
 # ==========================================================================
 
-# Six slots. The photography due 25 September replaces slots 4 to 6 first.
+# The streetcar exterior first (pin 4), then six landscape frames from Jacob
+# Cote's final set. Files, not data URIs: /photos/ keeps the original
+# filenames and the embedded copyright, as his credit guidelines ask.
+PH = "../photos/1521-queen-st-jacobcotephotography-web-%d.jpg"
 SLIDES = [
-    ("{{DU_3}}",  "1521 Queen Street West. Concept rendering."),
-    ("{{DU_12}}", "The streetcar at the front door. Concept rendering."),
-    ("{{DU_24}}", "The entrance on Queen Street West. Concept rendering."),
-    ("{{DU_18}}", "Queen West at street level. Illustrative image."),
-    ("{{DU_20}}", "Parks and markets nearby. Illustrative image."),
-    ("{{DU_22}}", "The waterfront, minutes south. Illustrative image."),
+    ("../photos/1521-exterior-streetcar-r2.jpg", "1521 Queen Street West. Concept rendering."),
+    (PH % 2,  "Queen Street West."),
+    (PH % 7,  "Parkdale."),
+    (PH % 9,  "Patios around the corner."),
+    (PH % 13, "Sunnyside, on the waterfront."),
+    (PH % 12, "The waterfront trail."),
+    (PH % 14, "Lake Ontario, minutes south."),
 ]
-
 
 def slides_html():
     imgs = []
@@ -248,21 +305,12 @@ IMGS, DOTS = slides_html()
 BODY = '''<div class="pmt-preview" aria-hidden="true"></div>
 <div class="reg" id="top">
 
-  <header class="reg-bar">
-    <a class="wordmark" href="#top" aria-label="1521, Luxury Rentals on Queen West">1521</a>
-    <a class="reg-tel" href="tel:+14164519499">416.451.9499</a>
-  </header>
-
   <main class="reg-main">
     <div class="reg-say">
-      <span class="wm-stack" role="img" aria-label="1521">
-        <span class="wm-d" aria-hidden="true"><span>15</span></span>
-        <span class="wm-d" aria-hidden="true"><span>21</span></span>
-        <span class="wm-rule" aria-hidden="true"></span>
-      </span>
+      <h1 class="reg-logo" aria-label="1521 Queen West">''' + inline("C23", "lg-c23") + inline("C05", "lg-c05") + inline("C24", "lg-c24") + '''</h1>
       <p class="reg-tag">Luxury Rentals on Queen West</p>
-      <p class="reg-soon">Coming Soon Summer 2027</p>
-      <p class="reg-line">Ninety-five purpose-built residences at 1521 Queen Street West. Register for first access.</p>
+      <p class="reg-soon">Move-In Summer 2027</p>
+      <p class="reg-line">Boutique residences at 1521 Queen Street West.</p>
 
       <div class="reg-form">
         <span class="label">Registration</span>
@@ -277,7 +325,6 @@ BODY = '''<div class="pmt-preview" aria-hidden="true"></div>
         <div class="form-done tone-deep" id="done"><b>Preview only.</b><br>This form is not connected yet and nothing was sent. Registrations will be captured once the page is live at the final domain.</div>
         <p class="reg-fine reg-note">Design preview. Registrations are not yet being captured.</p>
         <p class="reg-fine">Realtors are welcome to register on behalf of a client.</p>
-        <p class="reg-fine">Prefer to talk? Call <a href="tel:+14164519499">416.451.9499</a>.</p>
       </div>
     </div>
 
@@ -293,9 +340,13 @@ BODY = '''<div class="pmt-preview" aria-hidden="true"></div>
 ''' + DOTS + '''
         </div>
       </div>
-      <p class="gal-note">Concept renderings and illustrative images. Photography to follow.</p>
     </aside>
   </main>
+
+  <div class="reg-small">
+    <p>Renderings are artist's concepts and may differ from the completed building. Neighbourhood images show the surrounding area, not the property. The move-in date is an estimate and may change. Features, finishes and availability are subject to change without notice.</p>
+    <p>Images by: <a href="https://jacobcotephotography.com" target="_blank" rel="noopener noreferrer">Jacob C&ocirc;t&eacute; Photography</a></p>
+  </div>
 
   <footer class="reg-foot">
     <div class="reg-foot-in">
@@ -314,6 +365,40 @@ BODY = '''<div class="pmt-preview" aria-hidden="true"></div>
 # ==========================================================================
 #  The only script this page needs
 # ==========================================================================
+
+LSW = '''<div class="pal lsw" role="group" aria-label="Logo options for review">
+  <span class="pal-lbl">Logo</span>
+  <button type="button" data-logo="c23" aria-pressed="true" title="C23 primary wordmark in Blue 072 C">Blue</button>
+  <button type="button" data-logo="c23-orange" aria-pressed="false" title="C23 primary wordmark in Orange 021 C">Orange</button>
+  <button type="button" data-logo="c23-burnt" aria-pressed="false" title="C23 primary wordmark in burnt orange">Burnt orange</button>
+  <button type="button" data-logo="c23-two" aria-pressed="false" title="C23 in Blue 072 C with Queen West in Orange 021 C">Two tone</button>
+  <button type="button" data-logo="c05" aria-pressed="false" title="C05 double ring badge">Badge</button>
+  <button type="button" data-logo="c24" aria-pressed="false" title="C24 stacked cut">Stacked</button>
+</div>
+'''
+
+LSW_JS = '''<script>
+/* Logo review control. ?logo=<option> in the address wins and is not saved,
+   so a link can open on one option; a click is remembered per browser. */
+(function(){
+  var KEY = 'q1521_logo';
+  var VALID = {'c23':1, 'c23-orange':1, 'c23-burnt':1, 'c23-two':1, 'c05':1, 'c24':1};
+  var root = document.documentElement;
+  var btns = [].slice.call(document.querySelectorAll('.lsw [data-logo]'));
+  function set(v, persist){
+    if(!VALID[v]) v = 'c23';
+    root.setAttribute('data-logo', v);
+    btns.forEach(function(b){ b.setAttribute('aria-pressed', b.dataset.logo === v ? 'true' : 'false'); });
+    if(persist){ try { localStorage.setItem(KEY, v); } catch(e){} }
+  }
+  var q = (location.search.match(/[?&]logo=([a-z0-9-]+)/) || [])[1];
+  var saved = null;
+  try { saved = localStorage.getItem(KEY); } catch(e){}
+  set(q || saved || 'c23', false);
+  btns.forEach(function(b){ b.addEventListener('click', function(){ set(b.dataset.logo, true); }); });
+})();
+</script>
+'''
 
 REG_JS = '''<script>
 /* Image carousel in the call-out box: six slides, a five second hold,
@@ -389,9 +474,9 @@ def main():
     if src.count(HEAD_END) != 1:
         raise SystemExit("apply_register: head marker appears %d times" % src.count(HEAD_END))
     head = src[:src.index(HEAD_END) + len(HEAD_END)]
-    switchers = take(src, FSW_START, "\n<script>", "switcher markup", include_end=False)
-    pal_js = take(src, PAL_JS, "</script>", "palette switcher js")
-    fsw_js = take(src, FSW_JS, "</script>", "font switcher js")
+    # the palette and font switchers stay on v3 only: Blue 072 C and DM Sans
+    # are settled, and the logo control takes their corner here
+    take(src, FSW_START, "\n<script>", "switcher markup", include_end=False)
 
     # ---- head edits ------------------------------------------------------
     for old, new, label in ((OLD_TITLE, NEW_TITLE, "title"),
@@ -411,7 +496,7 @@ def main():
                         "document.addEventListener('DOMContentLoaded',function(){"
                         "document.body.classList.add('reg-page');});</script>")
 
-    h = head + "\n" + BODY + switchers + "\n" + pal_js + "\n\n" + fsw_js + "\n\n" + REG_JS
+    h = head + "\n" + BODY + LSW + "\n" + LSW_JS + "\n" + REG_JS
 
     # ---- guards ----------------------------------------------------------
     for pat in (r"[Tt]he 501", r"THE 501", r"Premium Rentals", r"Parkdale House",
@@ -441,11 +526,18 @@ def main():
         if banned in body_only:
             raise SystemExit("apply_register: %s survived (%s)" % (banned, why))
     for need in ('id="fn"', 'id="ln"', 'id="em"', 'id="ph"', 'id="waitlist"',
-                 'id="done"', 'class="wm-stack"', 'id="gal"', 'id="galdots"', 'id="galprev"',
-                 'reg-note', 'Preview only.', 'class="reg-foot"',
-                 "Coming Soon Summer 2027", "bsargroup.com", "propertymanagementto.com"):
+                 'id="done"', 'class="reg-logo"', 'lg-c23', 'lg-c05', 'lg-c24',
+                 'id="gal"', 'id="galdots"', 'id="galprev"',
+                 'reg-note', 'Preview only.', 'class="reg-foot"', 'class="reg-small"',
+                 "Move-In Summer 2027", "Boutique residences at 1521 Queen Street West.",
+                 "jacobcotephotography.com", "bsargroup.com", "propertymanagementto.com"):
         if need not in body_only:
             raise SystemExit("apply_register: %s is missing" % need)
+    # pins 3, 5, 6, 7: none of the replaced lines may come back
+    for gone in ("Coming Soon", "Ninety-five", "Photography to follow", "451.9499",
+                 'class="wm-stack"', 'class="reg-bar"'):
+        if gone in body_only:
+            raise SystemExit("apply_register: %r is back on the page" % gone)
     if body_only.count('class="gal-shot') != len(SLIDES):
         raise SystemExit("apply_register: expected %d slides" % len(SLIDES))
 
