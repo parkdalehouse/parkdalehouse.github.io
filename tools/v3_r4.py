@@ -31,8 +31,7 @@ PH = "../photos/1521-queen-st-jacobcotephotography-web-%d.jpg"
 
 
 def logos(label="1521 Queen West"):
-    return (inline("C23", "lg-c23", label) + inline("C05", "lg-c05", label)
-            + inline("C24", "lg-c24", label))
+    return inline("C23", "lg-c23", label) + inline("C24", "lg-c24", label)
 
 
 NEW_DESC = ('<meta name="description" content="1521 at 1521 Queen Street West. Luxury rentals '
@@ -46,7 +45,7 @@ R4_CSS = '''
   /* ---- round four: the 1521 logo system (BSaR selects, 29 September) ----
      Every mark is inline SVG with classed parts. On the dark grounds of this
      page the mark is cream with the orange accent; the review control swaps
-     which mark of the system shows: C23 primary, C05 badge, C24 stacked. */
+     which mark of the system shows: C23 primary, C24 stacked (C05 left the system 15 Oct). */
   :root{--lg-num:var(--cream);--lg-word:var(--cream);--lg-acc:#FD5100}
   .lg .lg-n{fill:var(--lg-num)}
   .lg .lg-w{fill:var(--lg-word)}
@@ -57,22 +56,21 @@ R4_CSS = '''
   .lgx{display:block;line-height:0}
   .lgx .lg{display:none;height:auto}
   .lgx .lg-c23{display:block}
-  :root[data-logo="c05"] .lgx .lg-c23,:root[data-logo="c24"] .lgx .lg-c23{display:none}
-  :root[data-logo="c05"] .lgx .lg-c05,:root[data-logo="c24"] .lgx .lg-c24{display:block}
+  :root[data-logo="c24"] .lgx .lg-c23{display:none}
+  :root[data-logo="c24"] .lgx .lg-c24{display:block}
+  /* BSaR's colour standard, 15 Oct: C24's QUEEN and WEST are bright orange on any ground */
+  .lg-c24 .lg-w{fill:#FD5100}
   .nav-logo{color:inherit;transition:opacity .3s}
   .nav-logo:hover{opacity:.8}
   .nav-logo .lg-c23{width:66px}
-  .nav-logo .lg-c05{width:52px}
   .nav-logo .lg-c24{width:30px}
   nav.scrolled .nav-logo .lg-c23{width:56px}
   .hero-logo{margin-bottom:1.6rem;opacity:0;animation:fadeUp 1.1s var(--ease) .1s forwards}
   .hero-logo .lg{filter:drop-shadow(0 2px 18px rgba(10,4,97,.55))}
   .hero-logo .lg-c23{width:clamp(190px,22vw,300px)}
-  .hero-logo .lg-c05{width:clamp(170px,18vw,240px)}
   .hero-logo .lg-c24{width:clamp(96px,10vw,140px)}
   @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
   .foot-logo .lg-c23{width:120px}
-  .foot-logo .lg-c05{width:104px}
   .foot-logo .lg-c24{width:58px}
   .foot-legal a{color:inherit;border-bottom:1px solid rgba(var(--cream-rgb),.3);text-decoration:none}
   @media(max-width:860px){
@@ -92,16 +90,15 @@ R4_CSS = '''
 LSW = '''<div class="pal lsw" role="group" aria-label="Logo options for review">
   <span class="pal-lbl">Logo</span>
   <button type="button" data-logo="c23" aria-pressed="true" title="C23 primary wordmark">Primary</button>
-  <button type="button" data-logo="c05" aria-pressed="false" title="C05 double ring badge">Badge</button>
   <button type="button" data-logo="c24" aria-pressed="false" title="C24 stacked cut">Stacked</button>
 </div>'''
 
 LSW_JS = '''<script>
-/* Logo control. ?logo=c23|c05|c24 in the address wins and is not saved; a
+/* Logo control. ?logo=c23|c24 in the address wins and is not saved; a
    click is remembered per browser. Blue 072 C is locked, so no palette. */
 (function(){
   var KEY = 'q1521_logo_v3';
-  var VALID = {'c23':1, 'c05':1, 'c24':1};
+  var VALID = {'c23':1, 'c24':1};
   var root = document.documentElement;
   root.setAttribute('data-palette', 'B');
   var btns = [].slice.call(document.querySelectorAll('.lsw [data-logo]'));

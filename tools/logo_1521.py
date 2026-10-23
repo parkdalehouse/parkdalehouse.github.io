@@ -2,23 +2,21 @@
 """
 The 1521 logo system as inline SVG, for the register page and v3.
 
-brand/1521_marks.json holds the four marks BSaR selected on 29 September 2026,
-lifted as exact outlines from Tyler's selects PDF by
-Ventures/BSAR/Identity-1521/System-2026-10/extract_marks.py:
+brand/1521_marks.json holds the logo system as BSaR marked it up on 15 October
+2026 (round five, Ventures/BSAR/Identity-1521/System-2026-10-22/build_marks_r5.py,
+from Tyler's selects of 29 September):
 
     C23 Justified       primary wordmark   QUEEN / 1521 / WEST
-    C24 Stacked centre  stacked cut        QUEEN / 15 / 21 / WEST
-    C05 Double ring     badge
-    C02 Solid dot       favicon and icon
+    C24 Stacked centre  stacked cut        QUEEN / 15 / 21 / WEST, numerals at C23's stroke
+    C02 Solid dot       favicon and icon   C23's 1521 in an Orange 021 C dot
+    (the C05 badge is out of the system)
 
-Every part carries a class so CSS colours it, which is what lets the review
-switcher show the same mark in each brand colour without a second file:
+Every part carries a class so CSS colours it:
 
     .lg-n   the numerals           fill  var(--lg-num)
     .lg-w   QUEEN and WEST         fill  var(--lg-word)
-    .lg-a   the accent letters     fill  var(--lg-acc)
-    .lg-r1  the outer ring         stroke var(--lg-num)
-    .lg-r2  the inner ring         stroke var(--lg-acc)
+    .lg-a   the C02 dot            fill  var(--lg-acc)
+    .lg-k   C02's numerals         fill  cream, knocked out of the dot
 """
 import base64
 import json
@@ -27,13 +25,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 MARKS = json.loads((ROOT / "brand" / "1521_marks.json").read_text(encoding="utf-8"))
 
-PAD = {"C23": 0.02, "C24": 0.02, "C05": 0.015, "C02": 0.0}
-
-
-def _height(d):
-    nums = d.replace("M", " ").replace("L", " ").replace("C", " ").replace("Z", " ").split()
-    ys = [float(v) for v in nums[1::2]]
-    return max(ys) - min(ys)
+PAD = {"C23": 0.02, "C24": 0.02, "C02": 0.0}
 
 
 def inline(name, cls, label="1521 Queen West"):
@@ -44,19 +36,15 @@ def inline(name, cls, label="1521 Queen West"):
     out = ['<svg class="lg %s" viewBox="%s" role="img" aria-label="%s" focusable="false">'
            % (cls, vb, label)]
     for p in m["parts"]:
-        if p["kind"] == "ring":
-            c = "lg-r1" if p["role"] == "ink" else "lg-r2"
-            out.append('<circle class="%s" cx="%.2f" cy="%.2f" r="%.2f" fill="none" stroke-width="%.3f"/>'
-                       % (c, p["cx"], p["cy"], p["r"], p["w"]))
-        elif p["kind"] == "disc":
+        if p["kind"] == "disc":
             out.append('<circle class="lg-a" cx="%.2f" cy="%.2f" r="%.2f"/>' % (p["cx"], p["cy"], p["r"]))
         else:
-            if p["role"] == "accent":
-                c = "lg-a"
-            elif p["role"] == "knock":
+            if p["role"] == "word":
+                c = "lg-w"
+            elif name == "C02":
                 c = "lg-k"
             else:
-                c = "lg-w" if _height(p["d"]) < 9.0 else "lg-n"
+                c = "lg-n"
             out.append('<path class="%s" d="%s"/>' % (c, p["d"]))
     out.append("</svg>")
     return "".join(out)
@@ -71,7 +59,7 @@ def icon_svg(dot="#FD5100", num="#FCF6ED"):
            % (cx - r, cy - r, 2 * r, 2 * r),
            '<circle cx="%.2f" cy="%.2f" r="%.2f" fill="%s"/>' % (cx, cy, r, dot)]
     for p in m["parts"]:
-        if p.get("role") == "knock":
+        if p.get("role") == "num":
             out.append('<path d="%s" fill="%s"/>' % (p["d"], num))
     out.append("</svg>")
     return "".join(out)
@@ -89,6 +77,6 @@ def favicon_links():
 
 
 if __name__ == "__main__":
-    for n in ("C23", "C24", "C05"):
+    for n in ("C23", "C24", "C02"):
         print(n, len(inline(n, "x")), "bytes")
     print(favicon_links()[:120])

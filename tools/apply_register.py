@@ -136,25 +136,13 @@ REG_CSS = '''
     gap:4.5rem;align-items:start;padding:3rem 2.4rem 2.4rem;max-width:1280px;
     width:100%;margin:0 auto}
 
-  /* the 1521 logo system (BSaR selects, 29 September), drawn inline so the
-     review control can recolour it: C23 primary by default */
-  :root{--lg-num:var(--deep);--lg-word:var(--deep);--lg-acc:var(--burnt)}
-  :root[data-logo="c23-orange"]{--lg-num:#FD5100;--lg-word:#FD5100}
-  :root[data-logo="c23-burnt"]{--lg-num:var(--burnt);--lg-word:var(--burnt)}
-  :root[data-logo="c23-two"]{--lg-word:#FD5100}
+  /* the C23 primary wordmark, all Blue 072 C on the cream ground: BSaR's
+     approval of 15 October and its colour standard for cream grounds */
+  :root{--lg-num:var(--deep);--lg-word:var(--deep)}
   .lg .lg-n{fill:var(--lg-num)}
   .lg .lg-w{fill:var(--lg-word)}
-  .lg .lg-a{fill:var(--lg-acc)}
-  .lg .lg-k{fill:var(--cream)}
-  .lg .lg-r1{stroke:var(--lg-num)}
-  .lg .lg-r2{stroke:var(--lg-acc)}
   .reg-logo{display:block;line-height:0}
-  .reg-logo .lg{display:none;height:auto}
-  .reg-logo .lg-c23{display:block;width:clamp(150px,14vw,186px)}
-  :root[data-logo="c05"] .reg-logo .lg-c23,
-  :root[data-logo="c24"] .reg-logo .lg-c23{display:none}
-  :root[data-logo="c05"] .reg-logo .lg-c05{display:block;width:clamp(132px,12vw,160px)}
-  :root[data-logo="c24"] .reg-logo .lg-c24{display:block;width:clamp(70px,6.4vw,86px)}
+  .reg-logo .lg-c23{display:block;height:auto;width:clamp(150px,14vw,186px)}
   .reg-tag{font-family:var(--display);font-size:clamp(1.05rem,1.8vw,1.4rem);
     letter-spacing:.04em;color:var(--deep);margin-top:1.5rem}
   .reg-soon{display:inline-flex;align-items:center;gap:.9rem;color:var(--accent);
@@ -209,14 +197,6 @@ REG_CSS = '''
   .reg-small a{color:var(--fg-70);text-decoration:none;border-bottom:1px solid var(--hair)}
   .reg-small a:hover{color:var(--accent)}
 
-  /* logo review control: the palette dot's slot, since Blue 072 C is locked */
-  .lsw{flex-wrap:wrap;border-radius:16px;max-width:calc(100vw - 2rem)}
-  .lsw button{width:auto;height:auto;border-radius:999px;padding:.34rem .6rem;
-    background:transparent;color:rgba(var(--cream-rgb),.86);border:1px solid rgba(var(--cream-rgb),.28);
-    font:600 .56rem/1 var(--sans);letter-spacing:.06em}
-  .lsw button:hover{transform:none;background:rgba(var(--cream-rgb),.12)}
-  .lsw button[aria-pressed="true"]{background:var(--cream);color:var(--deep);box-shadow:none;transform:none}
-
   /* the blue credit band at the foot */
   .reg-foot{display:flex;align-items:center;gap:2.6rem;flex-wrap:wrap;
     padding:1.1rem 2.4rem 1.2rem;background:var(--deep-2);color:var(--cream)}
@@ -228,21 +208,12 @@ REG_CSS = '''
   .reg-lock img{height:17px;width:auto;opacity:.92;display:block}
   .reg-lock img.tall{height:25px}
   .reg-legal{margin-left:auto;font-size:.52rem;letter-spacing:.06em;color:rgba(var(--cream-rgb),.4)}
-  /* the two review switchers move to the bottom right on this page, so they
-     never sit over the form column; the band keeps clear of them */
-  @media(min-width:861px){
-    .reg-page .pal,.reg-page .fsw{left:auto;right:1rem}
-    .reg-foot-in{padding-right:190px}
-  }
-
   @media(max-width:1080px){
     .reg-main{grid-template-columns:minmax(320px,440px) 1fr;gap:3rem}
   }
   @media(max-width:860px){
     .reg-main{grid-template-columns:1fr;gap:1.8rem;padding:1.6rem 1.25rem 1.6rem}
     .reg-logo .lg-c23{width:140px}
-    :root[data-logo="c05"] .reg-logo .lg-c05{width:122px}
-    :root[data-logo="c24"] .reg-logo .lg-c24{width:64px}
     .reg-small{padding:0 1.25rem 1.3rem}
     .reg-tag{margin-top:1.1rem;font-size:.98rem;letter-spacing:.03em}
     .reg-soon{margin-top:.7rem;font-size:.64rem}
@@ -259,12 +230,6 @@ REG_CSS = '''
     .reg-foot{padding:1rem 1.25rem 1.1rem}
     .reg-foot-in{gap:1.1rem}
     .reg-legal{margin-left:0;flex:1 0 100%}
-    /* review controls: out of the fixed corner, into the flow under the
-       band, so nothing sits on top of the intake on a phone */
-    .reg-page .pal,.reg-page .fsw{position:static;display:inline-flex;margin:.8rem 0 0 1.25rem;
-      box-shadow:none;max-width:calc(100vw - 2.5rem)}
-    .reg-page .fsw{display:block;margin-bottom:1.2rem}
-    .reg-page .fsw-body{max-height:none}
   }
   @media(prefers-reduced-motion:reduce){.gal-frame img{transition:none}}
 '''
@@ -302,12 +267,11 @@ def slides_html():
 
 IMGS, DOTS = slides_html()
 
-BODY = '''<div class="pmt-preview" aria-hidden="true"></div>
-<div class="reg" id="top">
+BODY = '''<div class="reg" id="top">
 
   <main class="reg-main">
     <div class="reg-say">
-      <h1 class="reg-logo" aria-label="1521 Queen West">''' + inline("C23", "lg-c23") + inline("C05", "lg-c05") + inline("C24", "lg-c24") + '''</h1>
+      <h1 class="reg-logo" aria-label="1521 Queen West">''' + inline("C23", "lg-c23") + '''</h1>
       <p class="reg-tag">Luxury Rentals on Queen West</p>
       <p class="reg-soon">Move-In Summer 2027</p>
       <p class="reg-line">Boutique residences at 1521 Queen Street West.</p>
@@ -325,6 +289,7 @@ BODY = '''<div class="pmt-preview" aria-hidden="true"></div>
         <div class="form-done tone-deep" id="done"><b>Preview only.</b><br>This form is not connected yet and nothing was sent. Registrations will be captured once the page is live at the final domain.</div>
         <p class="reg-fine reg-note">Design preview. Registrations are not yet being captured.</p>
         <p class="reg-fine">Realtors are welcome to register on behalf of a client.</p>
+        <p class="reg-fine">Leasing inquiries: <a href="tel:+14167259222">416-725-9222</a></p>
       </div>
     </div>
 
@@ -354,7 +319,7 @@ BODY = '''<div class="pmt-preview" aria-hidden="true"></div>
         <a href="https://www.bsargroup.com" target="_blank" rel="noopener noreferrer"><img src="{{DU_25}}" alt="BS&#228;R Group of Companies"></a></span>
       <span class="reg-lock"><small>Leasing Management By</small>
         <a href="https://www.propertymanagementto.com" target="_blank" rel="noopener noreferrer"><img class="tall" src="{{DU_26}}" alt="PMT Property Management Toronto"></a></span>
-      <span class="reg-legal">Design and content copyright 2026 Property Management Toronto Inc. Preview.</span>
+      <span class="reg-legal">Design and content copyright 2026 Property Management Toronto Inc.</span>
     </div>
   </footer>
 </div>
@@ -365,40 +330,6 @@ BODY = '''<div class="pmt-preview" aria-hidden="true"></div>
 # ==========================================================================
 #  The only script this page needs
 # ==========================================================================
-
-LSW = '''<div class="pal lsw" role="group" aria-label="Logo options for review">
-  <span class="pal-lbl">Logo</span>
-  <button type="button" data-logo="c23" aria-pressed="true" title="C23 primary wordmark in Blue 072 C">Blue</button>
-  <button type="button" data-logo="c23-orange" aria-pressed="false" title="C23 primary wordmark in Orange 021 C">Orange</button>
-  <button type="button" data-logo="c23-burnt" aria-pressed="false" title="C23 primary wordmark in burnt orange">Burnt orange</button>
-  <button type="button" data-logo="c23-two" aria-pressed="false" title="C23 in Blue 072 C with Queen West in Orange 021 C">Two tone</button>
-  <button type="button" data-logo="c05" aria-pressed="false" title="C05 double ring badge">Badge</button>
-  <button type="button" data-logo="c24" aria-pressed="false" title="C24 stacked cut">Stacked</button>
-</div>
-'''
-
-LSW_JS = '''<script>
-/* Logo review control. ?logo=<option> in the address wins and is not saved,
-   so a link can open on one option; a click is remembered per browser. */
-(function(){
-  var KEY = 'q1521_logo';
-  var VALID = {'c23':1, 'c23-orange':1, 'c23-burnt':1, 'c23-two':1, 'c05':1, 'c24':1};
-  var root = document.documentElement;
-  var btns = [].slice.call(document.querySelectorAll('.lsw [data-logo]'));
-  function set(v, persist){
-    if(!VALID[v]) v = 'c23';
-    root.setAttribute('data-logo', v);
-    btns.forEach(function(b){ b.setAttribute('aria-pressed', b.dataset.logo === v ? 'true' : 'false'); });
-    if(persist){ try { localStorage.setItem(KEY, v); } catch(e){} }
-  }
-  var q = (location.search.match(/[?&]logo=([a-z0-9-]+)/) || [])[1];
-  var saved = null;
-  try { saved = localStorage.getItem(KEY); } catch(e){}
-  set(q || saved || 'c23', false);
-  btns.forEach(function(b){ b.addEventListener('click', function(){ set(b.dataset.logo, true); }); });
-})();
-</script>
-'''
 
 REG_JS = '''<script>
 /* Image carousel in the call-out box: six slides, a five second hold,
@@ -496,7 +427,7 @@ def main():
                         "document.addEventListener('DOMContentLoaded',function(){"
                         "document.body.classList.add('reg-page');});</script>")
 
-    h = head + "\n" + BODY + LSW + "\n" + LSW_JS + "\n" + REG_JS
+    h = head + "\n" + BODY + REG_JS
 
     # ---- guards ----------------------------------------------------------
     for pat in (r"[Tt]he 501", r"THE 501", r"Premium Rentals", r"Parkdale House",
@@ -526,7 +457,8 @@ def main():
         if banned in body_only:
             raise SystemExit("apply_register: %s survived (%s)" % (banned, why))
     for need in ('id="fn"', 'id="ln"', 'id="em"', 'id="ph"', 'id="waitlist"',
-                 'id="done"', 'class="reg-logo"', 'lg-c23', 'lg-c05', 'lg-c24',
+                 'id="done"', 'class="reg-logo"', 'lg-c23', 'tel:+14167259222',
+                 '416-725-9222',
                  'id="gal"', 'id="galdots"', 'id="galprev"',
                  'reg-note', 'Preview only.', 'class="reg-foot"', 'class="reg-small"',
                  "Move-In Summer 2027", "Boutique residences at 1521 Queen Street West.",
@@ -535,7 +467,8 @@ def main():
             raise SystemExit("apply_register: %s is missing" % need)
     # pins 3, 5, 6, 7: none of the replaced lines may come back
     for gone in ("Coming Soon", "Ninety-five", "Photography to follow", "451.9499",
-                 'class="wm-stack"', 'class="reg-bar"'):
+                 'class="wm-stack"', 'class="reg-bar"', "lg-c05", "lg-c24", "lsw",
+                 "pmt-preview", "Preview."):
         if gone in body_only:
             raise SystemExit("apply_register: %r is back on the page" % gone)
     if body_only.count('class="gal-shot') != len(SLIDES):

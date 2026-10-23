@@ -29,7 +29,14 @@ META = ('<meta name="copyright" content="Design and content copyright 2026 Prope
 ROBOTS = '<meta name="robots" content="noindex, nofollow, noarchive">\n'
 
 
+# The Marketing Services Agreement was executed in Lumin on 16 October 2026, so the
+# layer is off. Set True to put it back on a page shown before an agreement.
+ACTIVE = False
+
+
 def run(h, sub, resub, cut_block):
+    if not ACTIVE:
+        return h
     h = sub(h, "\n</style>", "\n" + CSS + "</style>", 1, "preview layer css")
     h = sub(h, ROBOTS, ROBOTS + META, 1, "copyright meta")
     h = sub(h, '<nav id="nav" class="tone-deep">', DIV + '<nav id="nav" class="tone-deep">', 1, "preview layer div")
