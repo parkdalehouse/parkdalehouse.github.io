@@ -2,12 +2,13 @@
 """
 The 1521 logo system as inline SVG, for the register page and v3.
 
-brand/1521_marks.json holds the logo system as BSaR marked it up on 15 October
-2026 (round five, Ventures/BSAR/Identity-1521/System-2026-10-22/build_marks_r5.py,
+brand/1521_marks.json holds the logo system as BSaR marked it up on 15 and 23
+October 2026 (round six, Ventures/BSAR/Identity-1521/System-2026-10-23/build_marks_r6.py,
 from Tyler's selects of 29 September):
 
     C23 Justified       primary wordmark   QUEEN / 1521 / WEST
-    C24 Stacked centre  stacked cut        QUEEN / 15 / 21 / WEST, numerals at C23's stroke
+    C24 Stacked centre  stacked cut        QUEEN / 15 / 21 / WEST, C23's own numerals,
+                                           QUEEN and WEST at equal gaps
     C02 Solid dot       favicon and icon   C23's 1521 in an Orange 021 C dot
     (the C05 badge is out of the system)
 

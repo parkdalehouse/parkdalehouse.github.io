@@ -44,13 +44,11 @@ neighbourhood photography:
     pin 7  no phone number until BSaR's forwarding line exists
     pin 8  the 15/21 placeholder is replaced by the selected logo system
 
-The mark is C23, the primary wordmark, drawn inline from brand/1521_marks.json
-(tools/logo_1521.py). A review control replaces the palette dot (Blue 072 C is
-locked) and shows C23 in each brand colour, the C05 badge and the C24 stacked
-cut, as Claire asked: "mock-up the Registration page with the C23 primary logo
-in the different accent colours" and "a mockup of the registration page with
-C05". ?logo=c05 (or c23, c23-orange, c23-burnt, c23-two, c24) in the address
-opens the page on that option. The C02 dot is the favicon.
+The mark is C23, the primary wordmark, in Blue 072 C on cream, drawn inline from
+brand/1521_marks.json (tools/logo_1521.py), as BSaR approved on 15 October. The
+round four logo control, the C05 badge and the C24 stacked cut are gone from the
+page, and the build fails if either of the last two comes back. The C02 dot is
+the favicon.
 
 The carousel is the exterior rendering plus six of Jacob's landscape frames,
 served as files from /photos/ (original filenames and embedded copyright kept,
