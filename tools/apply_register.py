@@ -203,7 +203,7 @@ REG_CSS = '''
   .reg-lock{display:flex;align-items:center;gap:.8rem}
   .reg-lock small{font-size:.52rem;letter-spacing:.22em;text-transform:uppercase;
     color:rgba(var(--cream-rgb),.55);font-weight:600;white-space:nowrap}
-  .reg-lock img{height:17px;width:auto;opacity:.92;display:block}
+  .reg-lock img{height:24px;width:auto;opacity:.92;display:block}
   .reg-lock img.tall{height:25px}
   .reg-legal{margin-left:auto;font-size:.52rem;letter-spacing:.06em;color:rgba(var(--cream-rgb),.4)}
   @media(max-width:1080px){

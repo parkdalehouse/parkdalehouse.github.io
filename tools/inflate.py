@@ -209,6 +209,8 @@ def main():
 
     html = skeleton.read_text(encoding="utf-8")
     assets = json.loads(ASSETS.read_text(encoding="utf-8"))
+    if args.target in ("v3", "register"):
+        assets["{{DU_25}}"] = data_uri(ROOT / "brand/bsar_logo_cream.svg", "image/svg+xml")
 
     # --- fonts -----------------------------------------------------------
     fonts = 0
