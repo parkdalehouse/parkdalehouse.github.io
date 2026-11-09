@@ -92,8 +92,10 @@ files in it by hand.
 
 Nothing here starts until BSaR (Claire) has signed off the proof in writing,
 including both consent boxes and the privacy notice, and the five renders are
-in. The intake workflow `YoFu9Qj59hJqcP3z` is built and tested but switched
-OFF until then.
+in. The intake workflow `YoFu9Qj59hJqcP3z` is ON for the preview page only
+(`--preview-only`: it accepts https://parkdalehouse.github.io and refuses
+{DOMAIN}) so Claire can try the form on the proof; preview rows are tagged
+[TEST].
 
 ## 0a. Timing and people
 
@@ -158,8 +160,9 @@ Enforce HTTPS. The certificate is issued by GitHub automatically.
 
 ## 4. Launch checks (all must pass before anyone is told it is live)
 
-0. Switch the intake on: `python3 build_intake.py --deploy --activate` in
-   `Ventures/BSAR/Registration-Intake/` (or Activate in n8n).
+0. Open the intake to the live domain: `python3 build_intake.py --deploy
+   --activate` in `Ventures/BSAR/Registration-Intake/` (without
+   `--preview-only`). Review and delete preview test rows first.
 
 1. `https://{DOMAIN}/` and `https://www.{DOMAIN}/` load the page with a padlock.
 2. `http://` redirects to `https://`; the three other names redirect here.

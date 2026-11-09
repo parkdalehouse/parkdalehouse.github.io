@@ -383,7 +383,18 @@ REG_CSS = '''
   .gal-text{flex:1 1 auto;min-width:0}
   .gal-meta{align-items:flex-start}
   .gal-cap,.gal-credit{font-size:.75rem}
-  .gal-dots{margin-top:-.25rem}
+  .gal-ctl{display:flex;align-items:center;gap:.35rem;flex:0 0 auto;margin-top:-.25rem}
+  .gal-play{position:absolute;right:.6rem;bottom:.6rem;z-index:2;width:32px;height:32px;padding:0;
+    border:0;cursor:pointer;background:rgba(var(--cream-rgb),.88);color:var(--deep);transition:background .25s,color .25s}
+  .gal-play:hover{background:var(--deep);color:var(--cream)}
+  .gal-play::before,.gal-play::after{content:"";position:absolute;top:11px;width:3px;height:10px;
+    background:currentColor}
+  .gal-play::before{left:12px}
+  .gal-play::after{left:17px}
+  .gal-play[data-state="paused"]::before{left:13px;top:11px;width:0;height:0;background:none;
+    border-style:solid;border-width:5px 0 5px 8px;border-color:transparent transparent transparent currentColor}
+  .gal-play[data-state="paused"]::after{display:none}
+  .gal-play:focus-visible{outline:2px solid var(--deep);outline-offset:2px}
   .gal-dots button::before{background:rgba(var(--deep-rgb),.5)}
   .gal-frame.is-loading::after{content:"";position:absolute;left:50%;top:50%;width:26px;height:26px;
     margin:-13px 0 0 -13px;border:2px solid rgba(var(--cream-rgb),.5);border-top-color:var(--cream);
@@ -393,7 +404,14 @@ REG_CSS = '''
   @media(max-width:860px){
     .gal-meta{flex-wrap:wrap;gap:.4rem}
     .gal-text{flex:1 0 100%}
-    .gal-dots{width:100%;flex-wrap:wrap;gap:2px;margin-top:0}
+    .gal-ctl{width:100%;margin-top:0}
+    .gal-dots{flex:1 1 auto;flex-wrap:wrap;gap:0}
+    .gal-dots button::before{left:3px;right:3px}
+    .gal-play{width:36px;height:36px}
+    .gal-play::before,.gal-play::after{top:13px}
+    .gal-play::before{left:14px}
+    .gal-play::after{left:19px}
+    .gal-play[data-state="paused"]::before{left:15px;top:13px}
     .gal-dots button{width:24px;height:24px}
     .gal-btn{width:44px;height:44px}
     .reg-foot-in{max-width:none}
@@ -564,14 +582,17 @@ def body(prefix: str, placeholders: bool) -> tuple[str, int]:
 ''' + imgs + '''
         <button type="button" class="gal-btn prev" id="galprev" aria-label="Previous image"></button>
         <button type="button" class="gal-btn next" id="galnext" aria-label="Next image"></button>
+        <button type="button" class="gal-play" id="galplay" aria-label="Pause the slideshow"></button>
       </div>
       <div class="gal-meta">
-        <div class="gal-text" aria-live="polite">
+        <div class="gal-text" id="galtext" aria-live="off">
           <p class="gal-cap" id="galcap">''' + first.cap + '''</p>
           <p class="gal-credit" id="galcredit">''' + first.credit + '''</p>
         </div>
-        <div class="gal-dots" id="galdots" role="group" aria-label="Choose an image">
+        <div class="gal-ctl">
+          <div class="gal-dots" id="galdots" role="group" aria-label="Choose an image">
 ''' + dots + '''
+          </div>
         </div>
       </div>
     </aside>
@@ -603,11 +624,15 @@ def body(prefix: str, placeholders: bool) -> tuple[str, int]:
 # ==========================================================================
 
 REG_JS = '''<script>
-/* Image carousel in the call-out box, to flip through (Claire, 18 September):
-   arrows, dots and a swipe; it does not move on its own, so nothing shifts
-   while someone fills in the form. Only the first image comes with the page.
-   A slide changes once its image has loaded, so the frame never shows a
-   caption over an empty box; a failed image keeps the current slide. */
+/* Image carousel in the call-out box (Claire, 18 September): arrows, dots
+   and a swipe, and it turns on its own every five seconds (Ahmed, 8 November).
+   The turning waits while the pointer is over it, while anyone is in the form
+   or the carousel with the keyboard, while it is off screen or the tab is
+   hidden; the pause button stops it, and a reader who prefers reduced motion
+   starts paused. Captions are announced for a person's own clicks only.
+   Only the first image comes with the page. A slide changes once its image
+   has loaded, so the frame never shows a caption over an empty box; a failed
+   image keeps the current slide. */
 (function(){
   var frame = document.getElementById('galframe');
   var shots = [].slice.call(document.querySelectorAll('.gal-shot'));
@@ -616,6 +641,11 @@ REG_JS = '''<script>
   var credit = document.getElementById('galcredit');
   if(!frame || shots.length < 2 || dots.length !== shots.length) return;
   var i = 0, want = 0;
+  var gal = document.getElementById('gal');
+  var form = document.getElementById('waitlist');
+  var text = document.getElementById('galtext');
+  var playBtn = document.getElementById('galplay');
+  var reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   function ready(s){ return s.getAttribute('src') && !s.getAttribute('data-failed') && s.complete && s.naturalWidth > 0; }
   function load(s){
@@ -665,9 +695,11 @@ REG_JS = '''<script>
     load(s);
     if(ready(s)) done(true);
   }
-  dots.forEach(function(d, k){ d.addEventListener('click', function(){ go(k); }); });
-  document.getElementById('galprev').addEventListener('click', function(){ go(want - 1); });
-  document.getElementById('galnext').addEventListener('click', function(){ go(want + 1); });
+  /* a person's own move: announce it and restart the five seconds */
+  function user(n){ if(text) text.setAttribute('aria-live', 'polite'); go(n); restart(); }
+  dots.forEach(function(d, k){ d.addEventListener('click', function(){ user(k); }); });
+  document.getElementById('galprev').addEventListener('click', function(){ user(want - 1); });
+  document.getElementById('galnext').addEventListener('click', function(){ user(want + 1); });
 
   /* swipe: a horizontal move of 40 px or more between pointer down and up */
   var x0 = null;
@@ -676,11 +708,38 @@ REG_JS = '''<script>
     if(x0 === null) return;
     var dx = e.clientX - x0; x0 = null;
     if(Math.abs(dx) < 40) return;
-    go(dx < 0 ? want + 1 : want - 1);
+    user(dx < 0 ? want + 1 : want - 1);
   });
   frame.addEventListener('pointercancel', function(){ x0 = null; });
 
   paint(0);
+
+  /* automatic turning */
+  var stopped = reducedMotion, hover = false, typing = false, seen = true, timer = null;
+  function tick(){
+    if(stopped || hover || typing || !seen || document.hidden) return;
+    if(text) text.setAttribute('aria-live', 'off');
+    go(want + 1);
+  }
+  function restart(){ clearInterval(timer); timer = setInterval(tick, 5000); }
+  function showState(){
+    if(!playBtn) return;
+    playBtn.setAttribute('data-state', stopped ? 'paused' : 'playing');
+    playBtn.setAttribute('aria-label', stopped ? 'Play the slideshow' : 'Pause the slideshow');
+  }
+  if(playBtn) playBtn.addEventListener('click', function(){ stopped = !stopped; showState(); restart(); });
+  if(gal){
+    gal.addEventListener('pointerenter', function(e){ if(e.pointerType === 'mouse') hover = true; });
+    gal.addEventListener('pointerleave', function(){ hover = false; });
+  }
+  function inside(el){ return el && ((gal && gal.contains(el) && el !== playBtn) || (form && form.contains(el))); }
+  document.addEventListener('focusin', function(e){ typing = inside(e.target); });
+  document.addEventListener('focusout', function(e){ typing = inside(e.relatedTarget); });
+  if(gal && window.IntersectionObserver){
+    new IntersectionObserver(function(es){ seen = es[0].isIntersecting; }, {threshold: .35}).observe(gal);
+  }
+  showState();
+  restart();
 
   /* the magnetic pull on the submit button, as on the main site */
   var fine = matchMedia('(hover:hover) and (pointer:fine)').matches;
@@ -898,7 +957,7 @@ def check(h: str, n_slides: int, live: bool, placeholders: bool) -> None:
     for need in ('id="fn"', 'id="ln"', 'id="em"', 'id="ph"', 'id="waitlist"', 'id="cs"',
                  'id="co"', 'id="regerr"', 'id="done"', 'class="reg-logo"', 'lg-c23',
                  LEASING_TEL, LEASING_SHOWN, ENDPOINT,
-                 'id="gal"', 'id="galdots"', 'id="galprev"', 'id="galcredit"',
+                 'id="gal"', 'id="galdots"', 'id="galprev"', 'id="galcredit"', 'id="galplay"',
                  'class="reg-foot"', 'class="reg-small"', "Privacy:",
                  "Move-In Summer 2027", "Boutique residences at 1521 Queen Street West.",
                  "Truong Ly Design Inc.", "subject to change", 'id="cp"', "BSAR (Queen) LP",
