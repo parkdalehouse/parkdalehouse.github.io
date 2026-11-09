@@ -12,6 +12,8 @@ Targets
   --target v2         v2/skeleton_v2.html         -> v2/index.html   (default)
   --target v3         v3/skeleton_v3.html         -> v3/index.html
   --target register   register/skeleton_reg.html  -> register/index.html
+  --target live       register/skeleton_live.html -> ../1521-live-site/index.html
+                      (the page for https://1521queenwest.ca: no review tool)
 
 v2/assets.json and v2/fonts/ are shared by every target: assets.json is the
 regenerable output of tools/deflate.py and the fonts are tracked files, so
@@ -29,6 +31,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+LIVE_DIR = ROOT.parent / "1521-live-site"
 ASSETS = ROOT / "v2" / "assets.json"
 BRAND = ROOT / "v2" / "brand"
 TOOL = ROOT / "review-tool.html"
@@ -163,6 +166,12 @@ TARGETS = {
             filestem="1521_registration_markups",
         ),
     },
+    # The public page carries no review tool: patches None means none spliced.
+    "live": {
+        "skeleton": ROOT / "register" / "skeleton_live.html",
+        "out": LIVE_DIR / "index.html",
+        "patches": None,
+    },
 }
 
 # The v3 store key the change log quotes. Asserted at write time so a later
@@ -199,17 +208,31 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[1])
     ap.add_argument("--target", default="v2", choices=sorted(TARGETS),
                     help="which build to inflate (default: v2)")
+    ap.add_argument("--allow-missing-renders", action="store_true",
+                    help="live only: write the page although a Truong Ly render is missing")
     args = ap.parse_args()
     cfg = TARGETS[args.target]
+    if args.target == "live":
+        # Never let an incomplete page replace the publish folder's index.
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        from apply_register import missing_renders
+        gone = missing_renders()
+        if gone and not args.allow_missing_renders:
+            raise SystemExit("inflate: live refused, %d render(s) missing: %s"
+                             % (len(gone), ", ".join(Path(g).name for g in gone)))
+        if gone:
+            LIVE_DIR.mkdir(exist_ok=True)
+            (LIVE_DIR / "NOT_READY.txt").write_text(
+                "Staged without the Truong Ly renders. Do not publish.\n")
     skeleton, out = cfg["skeleton"], cfg["out"]
 
-    for p in (skeleton, ASSETS, TOOL):
+    for p in (skeleton, ASSETS) + ((TOOL,) if cfg["patches"] is not None else ()):
         if not p.exists():
             raise SystemExit("inflate: missing %s" % p)
 
     html = skeleton.read_text(encoding="utf-8")
     assets = json.loads(ASSETS.read_text(encoding="utf-8"))
-    if args.target in ("v3", "register"):
+    if args.target in ("v3", "register", "live"):
         assets["{{DU_25}}"] = data_uri(ROOT / "brand/bsar_logo_cream.svg", "image/svg+xml")
 
     # --- fonts -----------------------------------------------------------
@@ -257,10 +280,15 @@ def main():
         raise SystemExit("inflate: unsubstituted tokens %s" % sorted(set(left)))
 
     # --- review tool -----------------------------------------------------
-    tool = build_tool(cfg["patches"])
-    if args.target == "v3" and ("storeKey: '%s'" % V3_STORE_KEY) not in tool:
-        raise SystemExit("inflate: v3 review tool is not keyed %s" % V3_STORE_KEY)
-    html = html.rstrip() + "\n\n" + tool + "\n"
+    if cfg["patches"] is not None:
+        tool = build_tool(cfg["patches"])
+        if args.target == "v3" and ("storeKey: '%s'" % V3_STORE_KEY) not in tool:
+            raise SystemExit("inflate: v3 review tool is not keyed %s" % V3_STORE_KEY)
+        html = html.rstrip() + "\n\n" + tool + "\n"
+    else:
+        html = html.rstrip() + "\n"
+        if "client markup tool" in html:
+            raise SystemExit("inflate: the review tool reached the %s page" % args.target)
 
     # --- guards ----------------------------------------------------------
     for needle, label in FORBIDDEN:
@@ -277,7 +305,7 @@ def main():
 
     out.parent.mkdir(exist_ok=True)
     out.write_text(html, encoding="utf-8")
-    print("inflate: wrote %s" % out.relative_to(ROOT))
+    print("inflate: wrote %s" % out.relative_to(ROOT.parent))
     print("  images   %d" % len(used))
     print("  fonts    %d of %d available" % (fonts, len(FONT_FILES)))
     print("  brand    %d of %d available" % (inlined, len(BRAND_FILES)))
