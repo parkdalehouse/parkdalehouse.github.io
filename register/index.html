@@ -784,9 +784,11 @@
     background:rgba(255,255,255,.35)}
   .gal-frame{position:relative;aspect-ratio:4/3;overflow:hidden;background:#E6DED0;
     touch-action:pan-y}
-  .gal-frame img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
-    opacity:0;transition:opacity .9s var(--ease);user-select:none;-webkit-user-drag:none}
-  .gal-frame img.is-on{opacity:1}
+  .gal-frame img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;
+    opacity:0;transition:opacity 1s ease-in-out;user-select:none;-webkit-user-drag:none}
+  /* a crossfade: the new image fades in on top while the old one stays whole beneath */
+  .gal-frame img.is-on{opacity:1;z-index:1}
+  .gal-frame img.is-out{opacity:1;transition:none}
   .gal-btn{position:absolute;top:50%;transform:translateY(-50%);z-index:2;width:40px;height:40px;
     padding:0;border:0;cursor:pointer;background:rgba(var(--cream-rgb),.88);color:var(--deep);
     display:grid;place-items:center;transition:background .25s,color .25s}
@@ -868,7 +870,6 @@
     .reg-foot-in{gap:1.1rem}
     .reg-legal{margin-left:0;flex:1 0 100%}
   }
-  @media(prefers-reduced-motion:reduce){.gal-frame img{transition:none}}
 
   /* Review of 8 November (Codex, Opus): read outdoors on a phone.
      Contrast to WCAG 2.2 AA on cream: the burnt orange is darkened a shade
@@ -1023,11 +1024,11 @@
 
 <script>
 /* Image carousel in the call-out box (Claire, 18 September): arrows, dots
-   and a swipe, and it turns on its own every five seconds (Ahmed, 8 November).
-   The turning waits while the pointer is over it, while anyone is in the form
-   or the carousel with the keyboard, while it is off screen or the tab is
-   hidden; the pause button stops it, and a reader who prefers reduced motion
-   starts paused. Captions are announced for a person's own clicks only.
+   and a swipe, and it turns on its own every three seconds with a soft
+   crossfade (Ahmed, 8 November). It waits only while it is off screen, the tab
+   is hidden, the next image is still loading, or a keyboard user is on its
+   controls; the pause button stops it. A mouse over it or a click into the
+   form does not hold it. Captions are announced for a person's own clicks only.
    Only the first image comes with the page. A slide changes once its image
    has loaded, so the frame never shows a caption over an empty box; a failed
    image keeps the current slide. */
@@ -1040,10 +1041,9 @@
   if(!frame || shots.length < 2 || dots.length !== shots.length) return;
   var i = 0, want = 0;
   var gal = document.getElementById('gal');
-  var form = document.getElementById('waitlist');
   var text = document.getElementById('galtext');
   var playBtn = document.getElementById('galplay');
-  var reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var TURN = 3000, FADE = 1000, settle = null;
 
   function ready(s){ return s.getAttribute('src') && !s.getAttribute('data-failed') && s.complete && s.naturalWidth > 0; }
   function load(s){
@@ -1058,14 +1058,20 @@
     s.setAttribute('src', s.getAttribute('data-src'));
   }
   function paint(k){
+    var was = i;
     i = k;
     shots.forEach(function(s, n){
       s.classList.toggle('is-on', n === i);
+      s.classList.toggle('is-out', n === was && was !== i);
       s.setAttribute('aria-hidden', n === i ? 'false' : 'true');
     });
     dots.forEach(function(d, n){
       if(n === i) d.setAttribute('aria-current', 'true'); else d.removeAttribute('aria-current');
     });
+    clearTimeout(settle);
+    settle = setTimeout(function(){
+      shots.forEach(function(s){ s.classList.remove('is-out'); });
+    }, FADE + 100);
     if(cap) cap.textContent = shots[i].getAttribute('data-cap') || '';
     if(credit) credit.textContent = shots[i].getAttribute('data-credit') || '';
     [shots[(i + 1) % shots.length], shots[(i - 1 + shots.length) % shots.length]].forEach(function(s){
@@ -1074,17 +1080,26 @@
       load(s);
     });
   }
+  /* decode before the fade starts, so a big image never stutters in */
+  function show(k, s){
+    function now(){
+      if(want !== k) return;              /* a later click won */
+      frame.classList.remove('is-loading'); paint(k);
+    }
+    if(s.decode) s.decode().then(now, now); else now();
+  }
   function go(n){
     var k = (n + shots.length) % shots.length, s = shots[k];
     want = k;
-    if(ready(s)){ frame.classList.remove('is-loading'); paint(k); return; }
+    if(ready(s)){ show(k, s); return; }
     frame.classList.add('is-loading');
     function done(ok){
       s.removeEventListener('load', onload); s.removeEventListener('error', onerr);
       if(!ok) s.setAttribute('data-failed', '1');
       if(want !== k) return;              /* a later click won */
+      if(ok){ show(k, s); return; }
       frame.classList.remove('is-loading');
-      if(ok) paint(k); else want = i;     /* stay put; a later click retries */
+      want = i;                           /* stay put; a later click retries */
     }
     function onload(){ done(true); }
     function onerr(){ done(false); }
@@ -1093,7 +1108,7 @@
     load(s);
     if(ready(s)) done(true);
   }
-  /* a person's own move: announce it and restart the five seconds */
+  /* a person's own move: announce it and restart the three seconds */
   function user(n){ if(text) text.setAttribute('aria-live', 'polite'); go(n); restart(); }
   dots.forEach(function(d, k){ d.addEventListener('click', function(){ user(k); }); });
   document.getElementById('galprev').addEventListener('click', function(){ user(want - 1); });
@@ -1113,26 +1128,26 @@
   paint(0);
 
   /* automatic turning */
-  var stopped = reducedMotion, hover = false, typing = false, seen = true, timer = null;
+  var stopped = false, keyed = false, seen = true, timer = null;
   function tick(){
-    if(stopped || hover || typing || !seen || document.hidden) return;
+    if(stopped || keyed || !seen || document.hidden || frame.classList.contains('is-loading')) return;
     if(text) text.setAttribute('aria-live', 'off');
     go(want + 1);
   }
-  function restart(){ clearInterval(timer); timer = setInterval(tick, 5000); }
+  function restart(){ clearInterval(timer); timer = setInterval(tick, TURN); }
   function showState(){
     if(!playBtn) return;
     playBtn.setAttribute('data-state', stopped ? 'paused' : 'playing');
     playBtn.setAttribute('aria-label', stopped ? 'Play the slideshow' : 'Pause the slideshow');
   }
   if(playBtn) playBtn.addEventListener('click', function(){ stopped = !stopped; showState(); restart(); });
-  if(gal){
-    gal.addEventListener('pointerenter', function(e){ if(e.pointerType === 'mouse') hover = true; });
-    gal.addEventListener('pointerleave', function(){ hover = false; });
+  /* keyboard focus on an arrow or a dot holds it; a mouse click does not */
+  function onKeys(el){
+    if(!el || !gal || !gal.contains(el) || el === playBtn) return false;
+    try { return el.matches(':focus-visible'); } catch(err){ return false; }
   }
-  function inside(el){ return el && ((gal && gal.contains(el) && el !== playBtn) || (form && form.contains(el))); }
-  document.addEventListener('focusin', function(e){ typing = inside(e.target); });
-  document.addEventListener('focusout', function(e){ typing = inside(e.relatedTarget); });
+  document.addEventListener('focusin', function(e){ keyed = onKeys(e.target); });
+  document.addEventListener('focusout', function(){ keyed = false; });
   if(gal && window.IntersectionObserver){
     new IntersectionObserver(function(es){ seen = es[0].isIntersecting; }, {threshold: .35}).observe(gal);
   }
