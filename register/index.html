@@ -928,6 +928,64 @@
     .gal-btn{width:44px;height:44px}
     .reg-foot-in{max-width:none}
   }
+
+  /* Polish of 12 November (Codex design review, Review-2026-11-12-polish):
+     tighter desktop rhythm so the button sits nearer the fold, names side by
+     side on a phone, a tablet column, warm grey field edges with blue kept
+     for focus, a steady submit button, one size for the frame controls with
+     the dots on their own row, larger partner marks, airier small print. */
+  @media(min-width:861px){
+    .reg-main{padding-top:2.5rem}
+    .reg-tag{margin-top:1.25rem}
+    .reg-line{margin-top:.8rem}
+    .reg-form{margin-top:1.6rem;padding-top:1.3rem}
+    .reg-form form{gap:.75rem;margin-top:1rem}
+  }
+  .reg-form input:not([type="checkbox"]){border-color:#807B75;background:rgba(255,255,255,.45);
+    border-radius:0}
+  .reg-form input:not([type="checkbox"]):focus{border-color:var(--deep)}
+  .reg-form input:not([type="checkbox"])[aria-invalid="true"]{border:1px solid var(--accent);
+    box-shadow:inset 0 0 0 1px var(--accent)}
+  .reg-consent input[aria-invalid="true"]{box-shadow:0 0 0 2px var(--accent)}
+  .reg-consent input[aria-invalid="true"]:focus-visible{outline-offset:4px}
+  .reg-err{border-left-color:var(--accent)}
+  .reg-form .btn{font-family:var(--sans)}
+  .reg-form .btn:focus-visible{outline:2px solid var(--deep);outline-offset:3px}
+  .gal-meta{flex-direction:column;align-items:stretch;gap:.5rem}
+  .gal-text{flex:0 1 auto}
+  .gal-ctl{width:100%;margin-top:0;justify-content:center}
+  .gal-dots{flex:0 1 auto;flex-wrap:wrap;justify-content:center;gap:0}
+  .gal-dots button{flex:0 0 24px;width:24px;height:24px}
+  .gal-dots button::before{left:7px;right:7px;height:3px;margin-top:-1.5px}
+  .gal-dots button[aria-current="true"]::before{left:4px;right:4px;height:5px;margin-top:-2.5px;
+    background:var(--accent)}
+  .gal-btn,.gal-play{width:44px;height:44px}
+  .gal-play::before,.gal-play::after{top:17px}
+  .gal-play::before{left:17px}
+  .gal-play::after{left:24px}
+  .gal-play[data-state="paused"]::before{left:19px;top:17px}
+  .gal-btn:focus-visible,.gal-play:focus-visible{outline:2px solid var(--cream);outline-offset:0;
+    box-shadow:0 0 0 4px var(--deep)}
+  .reg-lock img,.reg-lock img.tall{height:32px;width:auto;opacity:1}
+  .reg-foot{padding-block:1.4rem}
+  .reg-small{font-size:.78rem;line-height:1.65}
+  .reg-small p{max-width:100ch}
+  .reg-small p+p{margin-top:.75rem}
+  @media(min-width:641px) and (max-width:860px){
+    .reg-main,.reg-small{max-width:720px;padding-inline:2rem}
+    .reg-logo .lg-c23{width:166px}
+    .reg-foot-in{max-width:656px}
+  }
+  @media(min-width:380px) and (max-width:640px){
+    .reg-form form{grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:.75rem}
+    .reg-form form>div{min-width:0}
+  }
+  @media(max-width:640px){
+    .reg-lock{display:grid;grid-template-columns:minmax(0,1fr) 112px;gap:.75rem;width:100%;
+      max-width:352px}
+    .reg-lock small{white-space:normal;letter-spacing:.16em}
+    .reg-lock>a{justify-self:start}
+  }
 </style>
 <script>document.documentElement.className += ' js';document.addEventListener('DOMContentLoaded',function(){document.body.classList.add('reg-page');});</script>
 
@@ -953,7 +1011,7 @@
           <div class="full reg-consent"><input id="cp" name="consent_pmt" type="checkbox" value="yes" aria-describedby="cscasl"><label for="cp" id="cplabel">Optional: also send me emails from Property Management Toronto Inc. and its affiliates, including PMT Realty Inc., Brokerage, about other rentals. I can unsubscribe at any time.</label></div>
           <p class="full reg-casl" id="cscasl">Property Management Toronto Inc., 200 - 141 Bathurst Street, Toronto, ON M5V 2R2, <a href="tel:+14167259222">416-725-9222</a>. <a href="https://www.propertymanagementto.com/privacy-policy/" target="_blank" rel="noopener noreferrer">Privacy policy</a></p>
           <div class="reg-hp" aria-hidden="true"><label for="co">Company</label><input id="co" name="company" tabindex="-1" autocomplete="off"></div>
-          <div class="full"><button class="btn btn-solid btn-mag" type="submit" id="regbtn">Register Now</button></div>
+          <div class="full"><button class="btn btn-solid" type="submit" id="regbtn">Register Now</button></div>
           <p class="full reg-err" id="regerr" role="alert" hidden></p>
         </form>
         <div class="form-done tone-deep" id="done" tabindex="-1"><b>Thank you, you&#39;re registered.</b><br>We&#39;ll email you updates on 1521 as move-in approaches.</div>
@@ -965,12 +1023,13 @@
     <aside class="reg-gal" id="gal" role="group" aria-roledescription="carousel" aria-label="Images of 1521 Queen West and the neighbourhood">
       <div class="gal-frame" id="galframe">
     <img class="gal-shot is-on" src="../photos/1521-exterior-streetcar-r2.jpg" srcset="../photos/1521-exterior-streetcar-r2-960.jpg 960w, ../photos/1521-exterior-streetcar-r2.jpg 1477w" sizes="(max-width: 860px) 100vw, 60vw" fetchpriority="high" alt="Rendering of 1521 Queen Street West with a streetcar passing" data-cap="1521 Queen Street West." data-credit="Artist&#39;s rendering. Subject to change." draggable="false" decoding="async">
-    <img class="gal-shot" data-src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjAwIDkwMCI+PHJlY3Qgd2lkdGg9IjEyMDAiIGhlaWdodD0iOTAwIiBmaWxsPSIjRUNFNEQ2Ii8+PHJlY3QgeD0iMzYiIHk9IjM2IiB3aWR0aD0iMTEyOCIgaGVpZ2h0PSI4MjgiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzEwMDY5RiIgc3Ryb2tlLW9wYWNpdHk9Ii4zNSIgc3Ryb2tlLXdpZHRoPSIzIiBzdHJva2UtZGFzaGFycmF5PSIxNiAxMiIvPjx0ZXh0IHg9IjYwMCIgeT0iNDI1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iSGVsdmV0aWNhLEFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iNTAiIGZpbGw9IiMxMDA2OUYiPlN1aXRlIGludGVyaW9yPC90ZXh0Pjx0ZXh0IHg9IjYwMCIgeT0iNDk1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iSGVsdmV0aWNhLEFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMzAiIGZpbGw9IiMxMDA2OUYiIGZpbGwtb3BhY2l0eT0iLjciPlRydW9uZyBMeSByZW5kZXJpbmcgZ29lcyBoZXJlPC90ZXh0Pjwvc3ZnPg==" aria-hidden="true" alt="Rendering of a suite interior at 1521 Queen Street West" data-cap="Suite interior." data-credit="Rendering by Truong Ly Design Inc. Subject to change." draggable="false" decoding="async">
-    <img class="gal-shot" data-src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjAwIDkwMCI+PHJlY3Qgd2lkdGg9IjEyMDAiIGhlaWdodD0iOTAwIiBmaWxsPSIjRUNFNEQ2Ii8+PHJlY3QgeD0iMzYiIHk9IjM2IiB3aWR0aD0iMTEyOCIgaGVpZ2h0PSI4MjgiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzEwMDY5RiIgc3Ryb2tlLW9wYWNpdHk9Ii4zNSIgc3Ryb2tlLXdpZHRoPSIzIiBzdHJva2UtZGFzaGFycmF5PSIxNiAxMiIvPjx0ZXh0IHg9IjYwMCIgeT0iNDI1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iSGVsdmV0aWNhLEFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iNTAiIGZpbGw9IiMxMDA2OUYiPkNvLXdvcmtpbmcgbG91bmdlPC90ZXh0Pjx0ZXh0IHg9IjYwMCIgeT0iNDk1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iSGVsdmV0aWNhLEFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMzAiIGZpbGw9IiMxMDA2OUYiIGZpbGwtb3BhY2l0eT0iLjciPlRydW9uZyBMeSByZW5kZXJpbmcgZ29lcyBoZXJlPC90ZXh0Pjwvc3ZnPg==" aria-hidden="true" alt="Rendering of the co-working lounge at 1521 Queen Street West" data-cap="Co-working lounge." data-credit="Rendering by Truong Ly Design Inc. Subject to change." draggable="false" decoding="async">
-    <img class="gal-shot" data-src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjAwIDkwMCI+PHJlY3Qgd2lkdGg9IjEyMDAiIGhlaWdodD0iOTAwIiBmaWxsPSIjRUNFNEQ2Ii8+PHJlY3QgeD0iMzYiIHk9IjM2IiB3aWR0aD0iMTEyOCIgaGVpZ2h0PSI4MjgiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzEwMDY5RiIgc3Ryb2tlLW9wYWNpdHk9Ii4zNSIgc3Ryb2tlLXdpZHRoPSIzIiBzdHJva2UtZGFzaGFycmF5PSIxNiAxMiIvPjx0ZXh0IHg9IjYwMCIgeT0iNDI1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iSGVsdmV0aWNhLEFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iNTAiIGZpbGw9IiMxMDA2OUYiPlBhcnR5IHJvb208L3RleHQ+PHRleHQgeD0iNjAwIiB5PSI0OTUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJIZWx2ZXRpY2EsQXJpYWwsc2Fucy1zZXJpZiIgZm9udC1zaXplPSIzMCIgZmlsbD0iIzEwMDY5RiIgZmlsbC1vcGFjaXR5PSIuNyI+VHJ1b25nIEx5IHJlbmRlcmluZyBnb2VzIGhlcmU8L3RleHQ+PC9zdmc+" aria-hidden="true" alt="Rendering of the party room at 1521 Queen Street West" data-cap="Party room." data-credit="Rendering by Truong Ly Design Inc. Subject to change." draggable="false" decoding="async">
-    <img class="gal-shot" data-src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjAwIDkwMCI+PHJlY3Qgd2lkdGg9IjEyMDAiIGhlaWdodD0iOTAwIiBmaWxsPSIjRUNFNEQ2Ii8+PHJlY3QgeD0iMzYiIHk9IjM2IiB3aWR0aD0iMTEyOCIgaGVpZ2h0PSI4MjgiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzEwMDY5RiIgc3Ryb2tlLW9wYWNpdHk9Ii4zNSIgc3Ryb2tlLXdpZHRoPSIzIiBzdHJva2UtZGFzaGFycmF5PSIxNiAxMiIvPjx0ZXh0IHg9IjYwMCIgeT0iNDI1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iSGVsdmV0aWNhLEFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iNTAiIGZpbGw9IiMxMDA2OUYiPkZpdG5lc3Mgc3R1ZGlvPC90ZXh0Pjx0ZXh0IHg9IjYwMCIgeT0iNDk1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iSGVsdmV0aWNhLEFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMzAiIGZpbGw9IiMxMDA2OUYiIGZpbGwtb3BhY2l0eT0iLjciPlRydW9uZyBMeSByZW5kZXJpbmcgZ29lcyBoZXJlPC90ZXh0Pjwvc3ZnPg==" aria-hidden="true" alt="Rendering of the fitness studio at 1521 Queen Street West" data-cap="Fitness studio." data-credit="Rendering by Truong Ly Design Inc. Subject to change." draggable="false" decoding="async">
-    <img class="gal-shot" data-src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjAwIDkwMCI+PHJlY3Qgd2lkdGg9IjEyMDAiIGhlaWdodD0iOTAwIiBmaWxsPSIjRUNFNEQ2Ii8+PHJlY3QgeD0iMzYiIHk9IjM2IiB3aWR0aD0iMTEyOCIgaGVpZ2h0PSI4MjgiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzEwMDY5RiIgc3Ryb2tlLW9wYWNpdHk9Ii4zNSIgc3Ryb2tlLXdpZHRoPSIzIiBzdHJva2UtZGFzaGFycmF5PSIxNiAxMiIvPjx0ZXh0IHg9IjYwMCIgeT0iNDI1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iSGVsdmV0aWNhLEFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iNTAiIGZpbGw9IiMxMDA2OUYiPlRlcnJhY2UgbG91bmdlPC90ZXh0Pjx0ZXh0IHg9IjYwMCIgeT0iNDk1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iSGVsdmV0aWNhLEFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMzAiIGZpbGw9IiMxMDA2OUYiIGZpbGwtb3BhY2l0eT0iLjciPlRydW9uZyBMeSByZW5kZXJpbmcgZ29lcyBoZXJlPC90ZXh0Pjwvc3ZnPg==" aria-hidden="true" alt="Rendering of the outdoor terrace lounge at 1521 Queen Street West" data-cap="Terrace lounge." data-credit="Rendering by Truong Ly Design Inc. Subject to change." draggable="false" decoding="async">
-    <img class="gal-shot" data-src="../photos/1521-queen-st-jacobcotephotography-web-2.jpg" data-srcset="../photos/1521-queen-st-jacobcotephotography-web-2-960.jpg 960w, ../photos/1521-queen-st-jacobcotephotography-web-2.jpg 1800w" data-sizes="(max-width: 860px) 100vw, 60vw" aria-hidden="true" alt="Queen Street West" data-cap="Queen Street West." data-credit="Photo by Jacob C&ocirc;t&eacute; Photography." draggable="false" decoding="async">
+    <img class="gal-shot" data-src="../renders/1521-suite-interior.jpg" data-srcset="../renders/1521-suite-interior-960.jpg 960w, ../renders/1521-suite-interior.jpg 1800w" data-sizes="(max-width: 860px) 100vw, 60vw" aria-hidden="true" alt="Rendering of a suite interior at 1521 Queen Street West" data-cap="Suite interior." data-credit="Rendering by Truong Ly Design Inc. Subject to change." draggable="false" decoding="async">
+    <img class="gal-shot" data-src="../renders/1521-co-working-lounge.jpg" data-srcset="../renders/1521-co-working-lounge-960.jpg 960w, ../renders/1521-co-working-lounge.jpg 1800w" data-sizes="(max-width: 860px) 100vw, 60vw" aria-hidden="true" alt="Rendering of the co-working lounge at 1521 Queen Street West" data-cap="Co-working lounge." data-credit="Rendering by Truong Ly Design Inc. Subject to change." draggable="false" decoding="async">
+    <img class="gal-shot" data-src="../renders/1521-party-room.jpg" data-srcset="../renders/1521-party-room-960.jpg 960w, ../renders/1521-party-room.jpg 1800w" data-sizes="(max-width: 860px) 100vw, 60vw" aria-hidden="true" alt="Rendering of the party room at 1521 Queen Street West" data-cap="Party room." data-credit="Rendering by Truong Ly Design Inc. Subject to change." draggable="false" decoding="async">
+    <img class="gal-shot" data-src="../renders/1521-fitness-studio.jpg" data-srcset="../renders/1521-fitness-studio-960.jpg 960w, ../renders/1521-fitness-studio.jpg 1800w" data-sizes="(max-width: 860px) 100vw, 60vw" aria-hidden="true" alt="Rendering of the fitness studio at 1521 Queen Street West" data-cap="Fitness studio." data-credit="Rendering by Truong Ly Design Inc. Subject to change." draggable="false" decoding="async">
+    <img class="gal-shot" data-src="../renders/1521-fitness-studio-2.jpg" data-srcset="../renders/1521-fitness-studio-2-960.jpg 960w, ../renders/1521-fitness-studio-2.jpg 1800w" data-sizes="(max-width: 860px) 100vw, 60vw" aria-hidden="true" alt="Rendering of the fitness studio mirror wall and weights at 1521 Queen Street West" data-cap="Fitness studio." data-credit="Rendering by Truong Ly Design Inc. Subject to change." draggable="false" decoding="async">
+    <img class="gal-shot" data-src="../renders/1521-terrace.jpg" data-srcset="../renders/1521-terrace-960.jpg 960w, ../renders/1521-terrace.jpg 1800w" data-sizes="(max-width: 860px) 100vw, 60vw" aria-hidden="true" alt="Rendering of the outdoor terrace lounge at 1521 Queen Street West" data-cap="Terrace lounge." data-credit="Rendering by Truong Ly Design Inc. Subject to change." draggable="false" decoding="async">
+    <img class="gal-shot" data-src="../photos/1521-queen-st-jacobcotephotography-web-2.jpg" data-srcset="../photos/1521-queen-st-jacobcotephotography-web-2-960.jpg 960w, ../photos/1521-queen-st-jacobcotephotography-web-2.jpg 1800w" data-sizes="(max-width: 860px) 100vw, 60vw" aria-hidden="true" alt="Roncesvalles Village" data-cap="Roncesvalles Village." data-credit="Photo by Jacob C&ocirc;t&eacute; Photography." draggable="false" decoding="async">
     <img class="gal-shot" data-src="../photos/1521-queen-st-jacobcotephotography-web-7.jpg" data-srcset="../photos/1521-queen-st-jacobcotephotography-web-7-960.jpg 960w, ../photos/1521-queen-st-jacobcotephotography-web-7.jpg 1800w" data-sizes="(max-width: 860px) 100vw, 60vw" aria-hidden="true" alt="Parkdale" data-cap="Parkdale." data-credit="Photo by Jacob C&ocirc;t&eacute; Photography." draggable="false" decoding="async">
     <img class="gal-shot" data-src="../photos/1521-queen-st-jacobcotephotography-web-9.jpg" data-srcset="../photos/1521-queen-st-jacobcotephotography-web-9-960.jpg 960w, ../photos/1521-queen-st-jacobcotephotography-web-9.jpg 1800w" data-sizes="(max-width: 860px) 100vw, 60vw" aria-hidden="true" alt="Neighbourhood patios" data-cap="Neighbourhood patios." data-credit="Photo by Jacob C&ocirc;t&eacute; Photography." draggable="false" decoding="async">
     <img class="gal-shot" data-src="../photos/1521-queen-st-jacobcotephotography-web-13.jpg" data-srcset="../photos/1521-queen-st-jacobcotephotography-web-13-960.jpg 960w, ../photos/1521-queen-st-jacobcotephotography-web-13.jpg 1800w" data-sizes="(max-width: 860px) 100vw, 60vw" aria-hidden="true" alt="Sunnyside, on the waterfront" data-cap="Sunnyside, on the waterfront." data-credit="Photo by Jacob C&ocirc;t&eacute; Photography." draggable="false" decoding="async">
@@ -987,18 +1046,19 @@
         </div>
         <div class="gal-ctl">
           <div class="gal-dots" id="galdots" role="group" aria-label="Choose an image">
-      <button type="button" aria-label="Image 1 of 12" aria-current="true"></button>
-      <button type="button" aria-label="Image 2 of 12"></button>
-      <button type="button" aria-label="Image 3 of 12"></button>
-      <button type="button" aria-label="Image 4 of 12"></button>
-      <button type="button" aria-label="Image 5 of 12"></button>
-      <button type="button" aria-label="Image 6 of 12"></button>
-      <button type="button" aria-label="Image 7 of 12"></button>
-      <button type="button" aria-label="Image 8 of 12"></button>
-      <button type="button" aria-label="Image 9 of 12"></button>
-      <button type="button" aria-label="Image 10 of 12"></button>
-      <button type="button" aria-label="Image 11 of 12"></button>
-      <button type="button" aria-label="Image 12 of 12"></button>
+      <button type="button" aria-label="Image 1 of 13" aria-current="true"></button>
+      <button type="button" aria-label="Image 2 of 13"></button>
+      <button type="button" aria-label="Image 3 of 13"></button>
+      <button type="button" aria-label="Image 4 of 13"></button>
+      <button type="button" aria-label="Image 5 of 13"></button>
+      <button type="button" aria-label="Image 6 of 13"></button>
+      <button type="button" aria-label="Image 7 of 13"></button>
+      <button type="button" aria-label="Image 8 of 13"></button>
+      <button type="button" aria-label="Image 9 of 13"></button>
+      <button type="button" aria-label="Image 10 of 13"></button>
+      <button type="button" aria-label="Image 11 of 13"></button>
+      <button type="button" aria-label="Image 12 of 13"></button>
+      <button type="button" aria-label="Image 13 of 13"></button>
           </div>
         </div>
       </div>

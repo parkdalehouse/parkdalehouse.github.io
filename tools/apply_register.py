@@ -86,6 +86,18 @@ A render whose file is missing is left out of both pages; --placeholders draws
 a labelled tile in its place for a proof. tools/build_live.py refuses to stage
 the live site while any render is missing.
 
+Sixth build, 12 November 2026, to Claire's review batch of 12 November (#bsar,
+nine pins; pins 1 to 8 are her 25 September pins resent by the review tool and
+stand as built) and her email of 12 November (Drive folder of Truong Ly renders,
+"Do not credit CORE on the exterior rendering as it is not their image"):
+
+    pin 9  "Queen Street West image is Roncesvalles. Change descriptor.":
+           Jacob's frame 2 reads "Roncesvalles Village."
+    the six renders are in, both gym views among them (GYM 1, GYM 2), the
+           co-working lounge cropped left of the column so the red chair is out
+    the exterior keeps "Artist's rendering. Subject to change." and names no
+           architect
+
 Rebuild:
     python3 tools/apply_v3.py \\
       && python3 tools/apply_register.py \\
@@ -417,6 +429,64 @@ REG_CSS = '''
     .gal-btn{width:44px;height:44px}
     .reg-foot-in{max-width:none}
   }
+
+  /* Polish of 12 November (Codex design review, Review-2026-11-12-polish):
+     tighter desktop rhythm so the button sits nearer the fold, names side by
+     side on a phone, a tablet column, warm grey field edges with blue kept
+     for focus, a steady submit button, one size for the frame controls with
+     the dots on their own row, larger partner marks, airier small print. */
+  @media(min-width:861px){
+    .reg-main{padding-top:2.5rem}
+    .reg-tag{margin-top:1.25rem}
+    .reg-line{margin-top:.8rem}
+    .reg-form{margin-top:1.6rem;padding-top:1.3rem}
+    .reg-form form{gap:.75rem;margin-top:1rem}
+  }
+  .reg-form input:not([type="checkbox"]){border-color:#807B75;background:rgba(255,255,255,.45);
+    border-radius:0}
+  .reg-form input:not([type="checkbox"]):focus{border-color:var(--deep)}
+  .reg-form input:not([type="checkbox"])[aria-invalid="true"]{border:1px solid var(--accent);
+    box-shadow:inset 0 0 0 1px var(--accent)}
+  .reg-consent input[aria-invalid="true"]{box-shadow:0 0 0 2px var(--accent)}
+  .reg-consent input[aria-invalid="true"]:focus-visible{outline-offset:4px}
+  .reg-err{border-left-color:var(--accent)}
+  .reg-form .btn{font-family:var(--sans)}
+  .reg-form .btn:focus-visible{outline:2px solid var(--deep);outline-offset:3px}
+  .gal-meta{flex-direction:column;align-items:stretch;gap:.5rem}
+  .gal-text{flex:0 1 auto}
+  .gal-ctl{width:100%;margin-top:0;justify-content:center}
+  .gal-dots{flex:0 1 auto;flex-wrap:wrap;justify-content:center;gap:0}
+  .gal-dots button{flex:0 0 24px;width:24px;height:24px}
+  .gal-dots button::before{left:7px;right:7px;height:3px;margin-top:-1.5px}
+  .gal-dots button[aria-current="true"]::before{left:4px;right:4px;height:5px;margin-top:-2.5px;
+    background:var(--accent)}
+  .gal-btn,.gal-play{width:44px;height:44px}
+  .gal-play::before,.gal-play::after{top:17px}
+  .gal-play::before{left:17px}
+  .gal-play::after{left:24px}
+  .gal-play[data-state="paused"]::before{left:19px;top:17px}
+  .gal-btn:focus-visible,.gal-play:focus-visible{outline:2px solid var(--cream);outline-offset:0;
+    box-shadow:0 0 0 4px var(--deep)}
+  .reg-lock img,.reg-lock img.tall{height:32px;width:auto;opacity:1}
+  .reg-foot{padding-block:1.4rem}
+  .reg-small{font-size:.78rem;line-height:1.65}
+  .reg-small p{max-width:100ch}
+  .reg-small p+p{margin-top:.75rem}
+  @media(min-width:641px) and (max-width:860px){
+    .reg-main,.reg-small{max-width:720px;padding-inline:2rem}
+    .reg-logo .lg-c23{width:166px}
+    .reg-foot-in{max-width:656px}
+  }
+  @media(min-width:380px) and (max-width:640px){
+    .reg-form form{grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:.75rem}
+    .reg-form form>div{min-width:0}
+  }
+  @media(max-width:640px){
+    .reg-lock{display:grid;grid-template-columns:minmax(0,1fr) 112px;gap:.75rem;width:100%;
+      max-width:352px}
+    .reg-lock small{white-space:normal;letter-spacing:.16em}
+    .reg-lock>a{justify-self:start}
+  }
 '''
 
 
@@ -454,9 +524,11 @@ SLIDES = (
           "Rendering of the party room at 1521 Queen Street West", True),
     Slide("renders/1521-fitness-studio.jpg", "Fitness studio.", TL_CREDIT,
           "Rendering of the fitness studio at 1521 Queen Street West", True),
+    Slide("renders/1521-fitness-studio-2.jpg", "Fitness studio.", TL_CREDIT,
+          "Rendering of the fitness studio mirror wall and weights at 1521 Queen Street West", True),
     Slide("renders/1521-terrace.jpg", "Terrace lounge.", TL_CREDIT,
           "Rendering of the outdoor terrace lounge at 1521 Queen Street West", True),
-    Slide(PH % 2, "Queen Street West.", JC_CREDIT, "Queen Street West"),
+    Slide(PH % 2, "Roncesvalles Village.", JC_CREDIT, "Roncesvalles Village"),
     Slide(PH % 7, "Parkdale.", JC_CREDIT, "Parkdale"),
     Slide(PH % 9, "Neighbourhood patios.", JC_CREDIT, "Neighbourhood patios"),
     Slide(PH % 13, "Sunnyside, on the waterfront.", JC_CREDIT, "Sunnyside, on the waterfront"),
@@ -569,7 +641,7 @@ def body(prefix: str, placeholders: bool) -> tuple[str, int]:
           <div class="full reg-consent"><input id="cp" name="consent_pmt" type="checkbox" value="yes" aria-describedby="cscasl"><label for="cp" id="cplabel">''' + CONSENT_PMT + '''</label></div>
           <p class="full reg-casl" id="cscasl">Property Management Toronto Inc., 200 - 141 Bathurst Street, Toronto, ON M5V 2R2, <a href="''' + LEASING_TEL + '''">''' + LEASING_SHOWN + '''</a>. <a href="''' + PRIVACY_URL + '''" target="_blank" rel="noopener noreferrer">Privacy policy</a></p>
           <div class="reg-hp" aria-hidden="true"><label for="co">Company</label><input id="co" name="company" tabindex="-1" autocomplete="off"></div>
-          <div class="full"><button class="btn btn-solid btn-mag" type="submit" id="regbtn">Register Now</button></div>
+          <div class="full"><button class="btn btn-solid" type="submit" id="regbtn">Register Now</button></div>
           <p class="full reg-err" id="regerr" role="alert" hidden></p>
         </form>
         <div class="form-done tone-deep" id="done" tabindex="-1"><b>Thank you, you&#39;re registered.</b><br>We&#39;ll email you updates on 1521 as move-in approaches.</div>

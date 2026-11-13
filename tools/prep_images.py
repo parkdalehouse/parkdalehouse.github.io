@@ -14,6 +14,7 @@ Prepare the registration page images.
        CO-WORKING LOUNGE.png            -> renders/1521-co-working-lounge.jpg
        PARTY ROOM.png                   -> renders/1521-party-room.jpg
        GYM 1.png                        -> renders/1521-fitness-studio.jpg
+       GYM 2.png                        -> renders/1521-fitness-studio-2.jpg
        OUTDOOR LOUNGE - TERRACE.png     -> renders/1521-terrace.jpg
 
    Claire asked for the co-working lounge to be cropped "to remove the red
@@ -53,7 +54,8 @@ RENDER_MAP = {
     "suite": ((r"suite",), "1521-suite-interior.jpg", False),
     "co-working": ((r"co.?working",), "1521-co-working-lounge.jpg", True),
     "party": ((r"party",), "1521-party-room.jpg", False),
-    "gym": ((r"gym", r"fitness"), "1521-fitness-studio.jpg", False),
+    "gym": ((r"gym\s*-?\s*1\b", r"fitness"), "1521-fitness-studio.jpg", False),
+    "gym-2": ((r"gym\s*-?\s*2\b",), "1521-fitness-studio-2.jpg", False),
     "terrace": ((r"terrace",), "1521-terrace.jpg", False),
 }
 
@@ -170,7 +172,8 @@ def import_renders(folder: Path, crops: dict, check_only: bool) -> None:
     if log and not check_only:
         sources = RENDERS / "SOURCES.md"
         head = ("# Renders on the registration page\n\nTruong Ly Design Inc. renders supplied by "
-                "BSaR (Claire Bodrug, 2 and 3 November 2026). Imported by tools/prep_images.py.\n\n"
+                "BSaR (Claire Bodrug, 2 and 3 November 2026; resent as a Drive folder 12 November). "
+                "Imported by tools/prep_images.py.\n\n"
                 "| Imported | Source file | Page file | Crop (l,t,r,b) |\n|---|---|---|---|\n")
         old = sources.read_text().split("|---|---|---|---|\n", 1)[1] if sources.exists() else ""
         sources.write_text(head + old + "\n".join(log) + "\n")
